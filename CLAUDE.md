@@ -113,10 +113,14 @@ Todas validadas end-to-end com ElevenLabs `eleven_multilingual_v2`.
 - [x] **Fase 8.4** — Slider de volume (Tokyo Night `Accent.Horizontal.TScale`) só para comentários. 0-100%, live-update via `pygame.Sound.set_volume()`, auto-persist debounced 400ms em `config.json`. `TTSElevenLabs.set_volume()` + `TTSEdge.set_volume()` + `CommentatorApp.set_volume()` encadeados.
 - [x] **Fase 8.6** — **Template provider offline** (`templates.py::TemplateCommentator`). Zero dependencies, zero API key, zero tokens — 100% offline. `PROVIDERS = ["template", "openai", "anthropic", "gemini", "ollama"]`. ~700 frases curadas em 4 línguas (en/pt/es/jp) × 15+ chaves de evento (overtake, pit_entry/exit, fastest_lap, lead_change, flag_green/yellow/red/blue/white/checkered/generic, race_start, battle, accident_suspected, laps_to_go, checkered). Anti-repetição via `deque(maxlen=8)` por tag. `AICommentator.__init__` instancia `TemplateCommentator` quando provider=="template"; `generate()` faz short-circuit antes do LLM; `test_key("template",…)` devolve `(True, "OK (offline)")`. UI: dropdown com "template" como primeira opção; campo API Key acinzenta quando template é escolhido (mesmo padrão do edge TTS). Placeholders safe via `_SafeDict` (missing keys → "?"). Combinado com Edge TTS → app 100% grátis sem configuração de keys.
 - [x] **Fase 8.5** — 2º provider de TTS: **Microsoft Edge TTS** (grátis, sem API key). Novo módulo `tts_edge.py::TTSEdge` com interface idêntica a `TTSElevenLabs` (start/stop/speak/validate/set_volume/last_error). `TTS_PROVIDERS = ["elevenlabs", "edge"]` em `config.py`. Dropdown "Provider" na UI desactiva o campo API Key quando edge é escolhido. Botão **Test** funciona para ambos. Usa vozes neurais MS tipo `en-GB-RyanNeural`, `pt-PT-DuarteNeural`. Requires `edge-tts>=6.1.0` + `aiohttp`. Exe cresceu para ~64 MB.
-- [ ] **Fase 9** — GitHub release
-  - Publicar em GitHub Releases com `dist/iRacingCommentator.exe` anexado
-  - `README.md` público (screenshot, como obter keys, download do .exe)
-  - Botão **Check for Updates** na UI: consulta `GET https://api.github.com/repos/<user>/iracing-commentator/releases/latest`, compara `tag_name` com versão local, descarrega o `.exe` novo se houver release mais recente e relança a aplicação (auto-update)
+- [x] **Fase 9** — GitHub release (v1.0.6 publicado em `qblessedp/iracing-commentator`)
+  - Repo público: https://github.com/qblessedp/iracing-commentator
+  - `README.md` com features, setup 100% grátis, API keys links, vozes recomendadas, arquitetura
+  - `LICENSE` MIT
+  - `updater.py::check_and_apply()` — consulta `/releases/latest`, compara `tag_name` com `APP_VERSION`, descarrega asset, gera `.bat` de swap (`move` + relaunch), chama `os._exit(0)` após detach
+  - Botão **Check for Updates** no `btn_frame`, thread daemon, confirm via `messagebox.askyesno`
+  - Título da janela mostra `v{APP_VERSION}`
+  - `build.bat`: `--hidden-import templates --hidden-import updater`
 
 ## Comandos
 
