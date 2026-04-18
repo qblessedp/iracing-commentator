@@ -8,9 +8,9 @@ generates commentary with AI, and speaks it in two alternating voices.
 
 ## Features
 
-- **Ten event types** detected automatically: overtakes, pit entry/exit,
-  fastest laps, lead changes, flags, race start, battles, stopped cars,
-  laps-to-go milestones, chequered flag.
+- **Eleven event types** detected automatically: overtakes, pit entry/exit,
+  fastest laps, lead changes, flags, race start, battles, accidents,
+  stopped cars, laps-to-go milestones, chequered flag.
 - **Five text AI providers:** Template (offline, no key),
   OpenAI, Anthropic Claude, Google Gemini, Ollama (local).
 - **Two TTS providers:** ElevenLabs (cloud, paid) and Microsoft Edge TTS
