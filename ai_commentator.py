@@ -26,30 +26,44 @@ EVENT_PRIORITY = {
 
 SESSION_TONE = {
     "practice": (
-        "Practice session: analytical, technical, relaxed. "
-        "Focus on setup work, consistency, sector times, who's testing what. "
-        "Avoid drama."
+        "PRACTICE session. Calm, analytical, conversational. Talk about setup work, "
+        "reference laps, long runs, who is trying what. No race drama. Do NOT say "
+        "'lights out', 'final stages', 'laps to go', 'lead change', 'race for the win'. "
+        "Reference times and data, not position battles for the win."
     ),
     "qualifying": (
-        "Qualifying session: tense, competitive, lap-by-lap focus. "
-        "Emphasize purple sectors, pole battles, final attempts, traffic drama."
+        "QUALIFYING session. Tense, urgent, laser-focused on the lap. Use 'provisional pole', "
+        "'on the flyer', 'banker lap', 'out for a final run', 'purple sectors'. NEVER say "
+        "'the race', 'laps to go', 'race strategy', 'tyre wear over the stint', 'pit stop for "
+        "an undercut'. The race has not started — this is one-lap pace."
     ),
     "race": (
-        "Race session: dramatic, energetic, full broadcast narrative. "
-        "Emphasize battles, strategy, tyre wear, overtakes, lap counts."
+        "RACE session. Full broadcast energy, dramatic but natural. Battles, strategy, "
+        "tyre degradation, overtakes, laps remaining, pit windows all in play."
     ),
 }
 
 SPEAKER_PERSONA = {
     1: (
-        "lead play-by-play commentator. Drive the narrative, call the action as it happens, "
-        "keep pace high. Think David Croft — urgent, precise, crisp."
+        "lead play-by-play commentator. You talk like a real broadcaster — contractions, "
+        "natural cadence, the occasional half-sentence, interjections like 'Oh', 'And', "
+        "'Well', 'Look at that'. Urgent when the moment demands it, crisp the rest of the "
+        "time. Think David Croft on a good day. Never stilted, never press-release prose."
     ),
     2: (
-        "color commentator and analyst. React, add context, insight, and light humor. "
-        "Think Martin Brundle — observational, knowing, occasional dry wit."
+        "color commentator and analyst. Conversational, observational, a touch of dry wit. "
+        "React first, then add a short bit of insight. Think Martin Brundle — contractions, "
+        "asides, real spoken English. Avoid formal or robotic phrasing."
     ),
 }
+
+STYLE_DIRECTIVE = (
+    "Sound like a real person on a live broadcast, not a news reader. "
+    "Use contractions (he's, it's, that's, isn't, we're). Interjections are welcome "
+    "('Oh!', 'And...', 'Well,', 'Look at that', 'Hang on'). Short or incomplete sentences "
+    "are fine if a commentator would say them. Never start with 'In other news' or a formal "
+    "connector. Never explain what an event is — react to it. No emojis, no hashtags."
+)
 
 
 @dataclass
@@ -132,6 +146,7 @@ class AICommentator:
         return (
             f"You are the {persona}\n"
             f"{tone}\n"
+            f"{STYLE_DIRECTIVE}\n"
             f"Respond in {language}. One line only, under 22 words. "
             f"Do not invent events not in the input. Do not repeat prior commentary. "
             f"No intros, no sign-offs, just the broadcast line."
@@ -162,7 +177,7 @@ class AICommentator:
         # Template provider: skip LLM, pick from curated phrase pools
         if self.provider == "template" and self._template is not None:
             try:
-                text = self._template.generate(selected[0], language)
+                text = self._template.generate(selected[0], language, session_type)
             except Exception as e:
                 self.last_error = f"{type(e).__name__}: {e}"
                 return {"speaker": 0, "text": ""}

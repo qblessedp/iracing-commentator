@@ -13,13 +13,14 @@ import subprocess
 import sys
 import tempfile
 import threading
+import time
 import urllib.error
 import urllib.request
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-APP_VERSION = "1.0.7"
+APP_VERSION = "1.0.8"
 GITHUB_REPO = "qblessedp/iracing-commentator"
 RELEASES_API = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
 ASSET_NAME = "iRacingCommentator.exe"
@@ -58,14 +59,63 @@ def find_asset(release: dict) -> str | None:
     return None
 
 
-def _download(url: str, dest: Path) -> None:
+def _download_once(url: str, dest: Path) -> tuple[int, int]:
+    """Download `url` to `dest`. Returns (expected_size, actual_size).
+
+    expected_size == 0 when the server omits Content-Length.
+    """
     req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
     with urllib.request.urlopen(req, timeout=60) as resp, open(dest, "wb") as f:
+        expected = int(resp.headers.get("Content-Length", "0") or "0")
         while True:
             chunk = resp.read(64 * 1024)
             if not chunk:
                 break
             f.write(chunk)
+    actual = dest.stat().st_size
+    return expected, actual
+
+
+def _download(url: str, dest: Path, attempts: int = 3) -> None:
+    """Download with Content-Length validation and retry.
+
+    Raises IOError if all attempts return a truncated file. Prevents the
+    partial-download case that caused Python DLL load failures in v1.0.7.
+    """
+    last_err: Exception | None = None
+    for i in range(1, attempts + 1):
+        try:
+            expected, actual = _download_once(url, dest)
+        except Exception as e:
+            last_err = e
+            logger.warning("Download attempt %d failed: %s", i, e)
+            dest.unlink(missing_ok=True)
+            if i < attempts:
+                time.sleep(1.5 * i)
+                continue
+            raise
+        if expected and actual != expected:
+            logger.warning(
+                "Download attempt %d truncated: got %d / %d bytes", i, actual, expected
+            )
+            dest.unlink(missing_ok=True)
+            last_err = IOError(f"Truncated download: {actual}/{expected} bytes")
+            if i < attempts:
+                time.sleep(1.5 * i)
+                continue
+            raise last_err
+        # success (or server omitted Content-Length and we got some bytes)
+        if actual == 0:
+            dest.unlink(missing_ok=True)
+            last_err = IOError("Empty download (0 bytes)")
+            if i < attempts:
+                time.sleep(1.5 * i)
+                continue
+            raise last_err
+        return
+    # unreachable, but keeps type checkers happy
+    if last_err:
+        raise last_err
 
 
 def _write_swap_script(new_exe: Path, current_exe: Path) -> Path:
