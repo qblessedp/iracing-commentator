@@ -1,0 +1,47 @@
+{
+  "_schema": {
+    "description": "Curated driver facts. Keys are lowercase driver names. facts_provider matches case-insensitively and also tries a normalized form of the iRacing UserName. Users can add their own entries.",
+    "fields": {
+      "irating_peak": "int — highest iRating reached (approximate)",
+      "known_for": "str — short phrase describing the driver's reputation",
+      "home_track": "str — track they're most associated with (optional)",
+      "fun_fact": "str — 1-2 sentence interesting fact"
+    }
+  },
+  "jardier": {
+    "irating_peak": 11500,
+    "known_for": "dominant open-wheel iRacing results and disciplined racecraft",
+    "home_track": "Spa-Francorchamps",
+    "fun_fact": "Czech sim racer with a huge following built around open-wheel exploits and an analytical approach to setup."
+  },
+  "maximilian benecke": {
+    "irating_peak": 12000,
+    "known_for": "multiple iRacing world championship wins and blistering qualifying pace",
+    "home_track": "Nurburgring",
+    "fun_fact": "German sim racer widely regarded as one of the fastest one-lap drivers on the platform."
+  },
+  "mitchell dejong": {
+    "irating_peak": 11800,
+    "known_for": "Porsche esports titles and a calm, consistent race pace",
+    "home_track": "Road America",
+    "fun_fact": "American sim racer who has carried his virtual pace into real-world GT programmes."
+  },
+  "nils naujoks": {
+    "irating_peak": 9500,
+    "known_for": "GT3 coaching content and broadcast commentary",
+    "home_track": "Nurburgring GP",
+    "fun_fact": "Well-known sim coach whose breakdowns of GT3 technique are mandatory viewing for serious iRacers."
+  },
+  "jamie fluke": {
+    "irating_peak": 10500,
+    "known_for": "endurance wins and careful tyre management",
+    "home_track": "Spa-Francorchamps",
+    "fun_fact": "British endurance specialist with a reputation for protecting tyres across triple-stint stretches."
+  },
+  "kamil franczak": {
+    "irating_peak": 10800,
+    "known_for": "aggressive wheel-to-wheel craft in Porsche Cup",
+    "home_track": "Monza",
+    "fun_fact": "Polish sim racer known for never giving up a position without a fight."
+  }
+}

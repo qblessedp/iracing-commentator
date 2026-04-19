@@ -1124,6 +1124,90 @@ class TemplateCommentator:
         recent.append(choice)
         return choice
 
+    def generate_filler(self, subject: dict, language: str = "en") -> str:
+        """Offline filler: a single parameterized line about a driver or track.
+
+        Subject shape: {"kind": "driver"|"track", "data": {...}}. Missing
+        fields are tolerated — the line is stitched from whatever is available.
+        """
+        if not subject:
+            return ""
+        data = subject.get("data") or {}
+        kind = subject.get("kind") or "driver"
+        lang = (language or "en").lower()
+
+        def pick(en: str, pt: str, es: str, jp: str) -> str:
+            return {"en": en, "pt": pt, "es": es, "jp": jp}.get(lang, en)
+
+        if kind == "driver":
+            name = data.get("name") or data.get("username") or pick(
+                "this driver", "este piloto", "este piloto", "このドライバー"
+            )
+            known = data.get("known_for")
+            fun = data.get("fun_fact")
+            irating = data.get("irating_peak") or data.get("irating")
+            team = data.get("teamname")
+            if fun:
+                return fun if str(name) in str(fun) else f"{name} — {fun}"
+            if known and irating:
+                return pick(
+                    f"{name} — peak around {irating} iRating, known for {known}.",
+                    f"{name} — picos perto de {irating} iRating, conhecido por {known}.",
+                    f"{name} — picos cerca de {irating} iRating, conocido por {known}.",
+                    f"{name} — ピークは約{irating} iRating、{known}で知られています。",
+                )
+            if known:
+                return pick(
+                    f"{name} — known for {known}.",
+                    f"{name} — conhecido por {known}.",
+                    f"{name} — conocido por {known}.",
+                    f"{name} — {known}で知られています。",
+                )
+            if team:
+                return pick(
+                    f"{name} out there for {team} today.",
+                    f"{name} em pista pela {team} hoje.",
+                    f"{name} en pista con {team} hoy.",
+                    f"{name}、今日は{team}で走っています。",
+                )
+            return pick(
+                f"Keeping an eye on {name} out there.",
+                f"De olho em {name} na pista.",
+                f"Atentos a {name} en pista.",
+                f"{name}の走りに注目しましょう。",
+            )
+
+        # Track
+        tname = data.get("name") or pick(
+            "this circuit", "este circuito", "este circuito", "このサーキット"
+        )
+        length = data.get("length_km")
+        corners = data.get("corners")
+        record = data.get("lap_record")
+        fun = data.get("fun_fact")
+        if fun:
+            return fun if str(tname) in str(fun) else f"{tname} — {fun}"
+        if length and corners:
+            return pick(
+                f"Reminder, {tname} runs {length} km across {corners} corners.",
+                f"Recorda, {tname} tem {length} km com {corners} curvas.",
+                f"Recuerda, {tname} son {length} km y {corners} curvas.",
+                f"思い出してください、{tname}は{length}kmで{corners}コーナーです。",
+            )
+        if record:
+            return pick(
+                f"Lap record around {tname} stands at {record}.",
+                f"O recorde de volta em {tname} esta em {record}.",
+                f"El record de vuelta en {tname} es de {record}.",
+                f"{tname}のラップレコードは{record}です。",
+            )
+        return pick(
+            f"Plenty of history at {tname}.",
+            f"Muita historia em {tname}.",
+            f"Mucha historia en {tname}.",
+            f"{tname}には多くの歴史があります。",
+        )
+
     def generate(self, event: dict, language: str = "en", session_type: str = "race") -> str:
         """Return a single broadcast-style line for the given event.
 

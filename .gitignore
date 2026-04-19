@@ -25,3 +25,4 @@ dist/
 # Audio dumps
 *.mp3
 *.wav
+build.log

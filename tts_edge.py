@@ -14,9 +14,11 @@ import threading
 
 logger = logging.getLogger(__name__)
 
-# Default broadcast-style voices (British English, F1 commentator feel)
-DEFAULT_VOICE_1 = "en-GB-RyanNeural"
-DEFAULT_VOICE_2 = "en-GB-ThomasNeural"
+# Default broadcast-style voices — one per persona, distinct feel each.
+DEFAULT_VOICE_1 = "en-GB-RyanNeural"      # play-by-play (British male)
+DEFAULT_VOICE_2 = "en-US-JennyNeural"     # color analyst (American female)
+DEFAULT_VOICE_3 = "en-GB-ThomasNeural"    # veteran (British male older)
+DEFAULT_VOICE_4 = "en-US-EricNeural"      # hype (American male energetic)
 
 
 class TTSEdge:
@@ -26,6 +28,8 @@ class TTSEdge:
         self,
         voice_id_1: str,
         voice_id_2: str,
+        voice_id_3: str = "",
+        voice_id_4: str = "",
         volume: float = 1.0,
         api_key: str = "",  # unused, kept for signature parity
     ):
@@ -33,6 +37,8 @@ class TTSEdge:
         self.voices = {
             1: (voice_id_1 or DEFAULT_VOICE_1).strip(),
             2: (voice_id_2 or DEFAULT_VOICE_2).strip(),
+            3: (voice_id_3 or DEFAULT_VOICE_3).strip(),
+            4: (voice_id_4 or DEFAULT_VOICE_4).strip(),
         }
         self._volume = max(0.0, min(1.0, float(volume)))
         self._queue: queue.Queue[tuple[str, int]] = queue.Queue(maxsize=8)
@@ -59,10 +65,16 @@ class TTSEdge:
         except queue.Full:
             pass
 
+    def _resolve_voice(self, speaker: int) -> str:
+        vid = self.voices.get(speaker, "")
+        if vid:
+            return vid
+        return self.voices.get(1, "")
+
     def speak(self, text: str, speaker: int) -> None:
         if not text or speaker not in self.voices:
             return
-        if not self.voices[speaker]:
+        if not self._resolve_voice(speaker):
             logger.debug("speak skipped: missing voice for speaker %s", speaker)
             return
         self.start()
@@ -80,7 +92,7 @@ class TTSEdge:
             if self._stop.is_set() or not text:
                 continue
             try:
-                audio = self._synthesize(text, self.voices[speaker])
+                audio = self._synthesize(text, self._resolve_voice(speaker))
                 if audio:
                     self._play(audio)
                     self.last_error = None

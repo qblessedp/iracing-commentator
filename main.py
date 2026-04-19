@@ -1,15 +1,19 @@
 import threading
 import time
 
+import facts_provider
 from gui import CommentatorGUI
 from iracing_reader import IRacingReader
 from event_detector import EventDetector
 from ai_commentator import AICommentator
 from tts_elevenlabs import TTSElevenLabs
 from tts_edge import TTSEdge
+from tts_sapi import TTSSapi
 from config import LANGUAGES, LANGUAGE_GUIDANCE
 
 POLL_INTERVAL_SEC = 0.5
+SILENCE_THRESHOLD_SEC = 7.0
+FILLER_COOLDOWN_SEC = 30.0
 
 
 class CommentatorApp:
@@ -21,7 +25,7 @@ class CommentatorApp:
         )
         self.worker_thread = None
         self.stop_flag = threading.Event()
-        self.tts: TTSElevenLabs | TTSEdge | None = None
+        self.tts: TTSElevenLabs | TTSEdge | TTSSapi | None = None
 
     def set_volume(self, pct: int) -> None:
         """Live-update commentary volume (0-100). Safe to call with no worker running."""
@@ -51,6 +55,16 @@ class CommentatorApp:
             tts = TTSEdge(
                 voice_id_1=cfg["voice_id_1"],
                 voice_id_2=cfg["voice_id_2"],
+                voice_id_3=cfg.get("voice_id_3", ""),
+                voice_id_4=cfg.get("voice_id_4", ""),
+                volume=vol_pct / 100.0,
+            )
+        elif tts_provider == "sapi":
+            tts = TTSSapi(
+                voice_id_1=cfg["voice_id_1"],
+                voice_id_2=cfg["voice_id_2"],
+                voice_id_3=cfg.get("voice_id_3", ""),
+                voice_id_4=cfg.get("voice_id_4", ""),
                 volume=vol_pct / 100.0,
             )
         else:
@@ -58,6 +72,8 @@ class CommentatorApp:
                 cfg["elevenlabs_api_key"],
                 cfg["voice_id_1"],
                 cfg["voice_id_2"],
+                voice_id_3=cfg.get("voice_id_3", ""),
+                voice_id_4=cfg.get("voice_id_4", ""),
                 volume=vol_pct / 100.0,
             )
         self.tts = tts
@@ -74,6 +90,8 @@ class CommentatorApp:
         event_count = 0
         prev_ai_err: str | None = None
         prev_tts_err: str | None = None
+        last_event_ts = time.monotonic()
+        last_filler_ts = 0.0
         while not self.stop_flag.is_set():
             try:
                 if not reader.ensure_connected():
@@ -93,12 +111,30 @@ class CommentatorApp:
                 events = detector.detect(snapshot)
                 if events:
                     event_count += len(events)
+                    last_event_ts = time.monotonic()
                     result = commentator.generate(
                         events, snapshot.get("session_type", "Race"), language, guidance
                     )
                     if result["text"]:
                         self.gui.log_commentary(result["speaker"], result["text"])
                         tts.speak(result["text"], result["speaker"])
+                else:
+                    now = time.monotonic()
+                    if (now - last_event_ts) > SILENCE_THRESHOLD_SEC and (
+                        now - last_filler_ts
+                    ) > FILLER_COOLDOWN_SEC:
+                        subject = facts_provider.pick_filler_subject(snapshot)
+                        if subject:
+                            filler = commentator.generate_filler(
+                                subject,
+                                snapshot.get("session_type", "Race"),
+                                language,
+                                guidance,
+                            )
+                            if filler.get("text"):
+                                self.gui.log_commentary(filler["speaker"], filler["text"])
+                                tts.speak(filler["text"], filler["speaker"])
+                                last_filler_ts = now
 
                 # Surface provider errors (stored on .last_error) to the UI
                 if commentator.last_error != prev_ai_err:

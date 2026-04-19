@@ -13,6 +13,41 @@ def _base_dir() -> Path:
 
 CONFIG_PATH = _base_dir() / "config.json"
 
+VOICE_SLOTS = (1, 2, 3, 4)
+
+# ElevenLabs preset voice IDs — distinct character per persona. These are the
+# public default voices shipped with Eleven accounts; users can overwrite.
+ELEVENLABS_DEFAULT_VOICES = {
+    1: "pNInz6obpgDQGcFmaJgB",  # Adam — play-by-play
+    2: "21m00Tcm4TlvDq8ikWAM",  # Rachel — color / pit lane
+    3: "TxGEqnHWrfWFTfGW9XjX",  # Josh — veteran
+    4: "AZnzlk1XvdvUeBnXmlld",  # Domi — hype
+}
+
+# Microsoft Edge TTS — 4 distinct neural voices (accents/genders).
+EDGE_DEFAULT_VOICES = {
+    1: "en-GB-RyanNeural",    # British male — play-by-play
+    2: "en-US-JennyNeural",   # American female — color
+    3: "en-GB-ThomasNeural",  # British male — veteran
+    4: "en-US-EricNeural",    # American male — hype
+}
+
+# Windows SAPI voice name hints (substring match against installed voices).
+# Fully offline — no network required. Whatever Windows has installed is used.
+SAPI_DEFAULT_VOICES = {
+    1: "David",  # US male — play-by-play
+    2: "Zira",   # US female — color
+    3: "Mark",   # US male calmer — veteran
+    4: "Hazel",  # UK female — hype
+}
+
+PERSONA_HINTS = {
+    1: "Play-by-play — crisp British broadcaster, urgent when it counts.",
+    2: "Color analyst / pit-lane reporter — conversational, dry wit.",
+    3: "Veteran ex-driver — grizzled, opinionated, technique-focused.",
+    4: "Hype commentator — big energy, exclamations, drama.",
+}
+
 DEFAULT_CONFIG = {
     "text_provider": "openai",
     "text_api_key": "",
@@ -20,12 +55,23 @@ DEFAULT_CONFIG = {
     "elevenlabs_api_key": "",
     "voice_id_1": "",
     "voice_id_2": "",
+    "voice_id_3": "",
+    "voice_id_4": "",
     "language": "en",
     "volume": 100,
 }
 
+
+def _default_voice_for(slot: int, tts_provider: str) -> str:
+    p = (tts_provider or "").lower().strip()
+    if p == "edge":
+        return EDGE_DEFAULT_VOICES.get(slot, "")
+    if p == "sapi":
+        return SAPI_DEFAULT_VOICES.get(slot, "")
+    return ELEVENLABS_DEFAULT_VOICES.get(slot, "")
+
 PROVIDERS = ["template", "openai", "anthropic", "gemini", "ollama"]
-TTS_PROVIDERS = ["elevenlabs", "edge"]
+TTS_PROVIDERS = ["elevenlabs", "edge", "sapi"]
 LANGUAGES = {"en": "English", "pt": "Portugues", "es": "Espanol", "jp": "Japanese"}
 LANGUAGE_LABELS = {
     "en": "English",
@@ -57,15 +103,29 @@ LANGUAGE_GUIDANCE = {
 }
 
 
+def _migrate(data: dict) -> dict:
+    """Merge persisted config over defaults. Fill voice_id_3/voice_id_4 from
+    defaults when missing, so old 2-voice configs keep working."""
+    merged = DEFAULT_CONFIG.copy()
+    merged.update(data)
+    tts_provider = merged.get("tts_provider", "elevenlabs")
+    for slot in (3, 4):
+        key = f"voice_id_{slot}"
+        if not merged.get(key):
+            merged[key] = _default_voice_for(slot, tts_provider)
+    return merged
+
+
 def load_config() -> dict:
     if not CONFIG_PATH.exists():
-        return DEFAULT_CONFIG.copy()
+        cfg = DEFAULT_CONFIG.copy()
+        for slot in VOICE_SLOTS:
+            cfg[f"voice_id_{slot}"] = _default_voice_for(slot, cfg["tts_provider"])
+        return cfg
     try:
         with open(CONFIG_PATH, "r", encoding="utf-8") as f:
             data = json.load(f)
-        merged = DEFAULT_CONFIG.copy()
-        merged.update(data)
-        return merged
+        return _migrate(data)
     except (json.JSONDecodeError, OSError):
         return DEFAULT_CONFIG.copy()
 

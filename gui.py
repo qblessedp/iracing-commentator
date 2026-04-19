@@ -14,6 +14,7 @@ from ai_commentator import AICommentator
 from config import load_config, save_config, PROVIDERS, TTS_PROVIDERS, LANGUAGE_LABELS
 from tts_elevenlabs import TTSElevenLabs
 from tts_edge import TTSEdge
+from tts_sapi import TTSSapi
 from updater import APP_VERSION, check_and_apply
 
 
@@ -28,6 +29,8 @@ ACCENT = "#7aa2f7"      # primary accent (blue)
 ACCENT_HOVER = "#89b4ff"
 SPEAKER1 = "#7aa2f7"    # blue
 SPEAKER2 = "#ff9e64"    # orange
+SPEAKER3 = "#bb9af7"    # purple (veteran)
+SPEAKER4 = "#f7768e"    # pink/red (hype)
 OK = "#9ece6a"          # green
 WARN = "#e0af68"        # amber
 ERR = "#f7768e"         # red / pink
@@ -229,15 +232,25 @@ class CommentatorGUI(tk.Tk):
         self.tts_status_indicator = ttk.Label(frame2, textvariable=self.tts_status_var, font=FONT_UI_BOLD)
         self.tts_status_indicator.grid(row=1, column=3, sticky="w", pady=4)
 
-        ttk.Label(frame2, text="Voice 1 (play-by-play)").grid(row=2, column=0, sticky="w", pady=4)
+        ttk.Label(frame2, text="Speaker 1 — Play-by-play").grid(row=2, column=0, sticky="w", pady=4)
         self.voice1_var = tk.StringVar(value=self.config_data["voice_id_1"])
         ttk.Entry(frame2, textvariable=self.voice1_var, width=44, font=FONT_UI).grid(
             row=2, column=1, sticky="w", padx=10, pady=4
         )
-        ttk.Label(frame2, text="Voice 2 (color)").grid(row=3, column=0, sticky="w", pady=4)
+        ttk.Label(frame2, text="Speaker 2 — Color Analyst").grid(row=3, column=0, sticky="w", pady=4)
         self.voice2_var = tk.StringVar(value=self.config_data["voice_id_2"])
         ttk.Entry(frame2, textvariable=self.voice2_var, width=44, font=FONT_UI).grid(
             row=3, column=1, sticky="w", padx=10, pady=4
+        )
+        ttk.Label(frame2, text="Speaker 3 — Veteran Ex-Driver").grid(row=4, column=0, sticky="w", pady=4)
+        self.voice3_var = tk.StringVar(value=self.config_data.get("voice_id_3", ""))
+        ttk.Entry(frame2, textvariable=self.voice3_var, width=44, font=FONT_UI).grid(
+            row=4, column=1, sticky="w", padx=10, pady=4
+        )
+        ttk.Label(frame2, text="Speaker 4 — Hype Commentator").grid(row=5, column=0, sticky="w", pady=4)
+        self.voice4_var = tk.StringVar(value=self.config_data.get("voice_id_4", ""))
+        ttk.Entry(frame2, textvariable=self.voice4_var, width=44, font=FONT_UI).grid(
+            row=5, column=1, sticky="w", padx=10, pady=4
         )
         self._apply_tts_provider_state()
         self._apply_text_provider_state()
@@ -343,6 +356,8 @@ class CommentatorGUI(tk.Tk):
         self.log.pack(fill="both", expand=True)
         self.log.tag_config("speaker1", foreground=SPEAKER1, font=(log_font[0], log_font[1], "bold"))
         self.log.tag_config("speaker2", foreground=SPEAKER2, font=(log_font[0], log_font[1], "bold"))
+        self.log.tag_config("speaker3", foreground=SPEAKER3, font=(log_font[0], log_font[1], "bold"))
+        self.log.tag_config("speaker4", foreground=SPEAKER4, font=(log_font[0], log_font[1], "bold"))
         self.log.tag_config("error", foreground=ERR)
         self.log.tag_config("info", foreground=MUTED)
         self.log.tag_config("ok", foreground=OK)
@@ -366,6 +381,8 @@ class CommentatorGUI(tk.Tk):
             "elevenlabs_api_key": clean(self.el_key_var.get()),
             "voice_id_1": clean(self.voice1_var.get()),
             "voice_id_2": clean(self.voice2_var.get()),
+            "voice_id_3": clean(self.voice3_var.get()),
+            "voice_id_4": clean(self.voice4_var.get()),
             "language": self._lang_display_to_code.get(self.lang_display_var.get(), "en"),
             "volume": int(self.volume_var.get()),
             "tts_provider": clean(self.tts_provider_var.get()) or "elevenlabs",
@@ -375,9 +392,9 @@ class CommentatorGUI(tk.Tk):
         self._apply_tts_provider_state()
 
     def _apply_tts_provider_state(self) -> None:
-        """Grey out the ElevenLabs API key entry when edge-tts is selected."""
+        """Grey out the ElevenLabs API key entry for key-less backends."""
         provider = (self.tts_provider_var.get() or "").lower().strip()
-        if provider == "edge":
+        if provider in ("edge", "sapi"):
             self.el_key_entry.configure(state="disabled")
         else:
             self.el_key_entry.configure(state="normal")
@@ -475,6 +492,9 @@ class CommentatorGUI(tk.Tk):
             if provider == "edge":
                 tts = TTSEdge(voice_id_1=v1, voice_id_2=v2)
                 label = "Edge TTS"
+            elif provider == "sapi":
+                tts = TTSSapi(voice_id_1=v1, voice_id_2=v2)
+                label = "Windows SAPI"
             else:
                 tts = TTSElevenLabs(api_key=api_key, voice_id_1=v1, voice_id_2=v2)
                 label = "ElevenLabs"
@@ -550,8 +570,10 @@ class CommentatorGUI(tk.Tk):
         self.log.configure(state="disabled")
 
     def log_commentary(self, speaker: int, text: str) -> None:
-        tag = "speaker1" if speaker == 1 else "speaker2" if speaker == 2 else "info"
-        label = "S1" if speaker == 1 else "S2" if speaker == 2 else "–"
+        tag_map = {1: "speaker1", 2: "speaker2", 3: "speaker3", 4: "speaker4"}
+        label_map = {1: "S1", 2: "S2", 3: "S3", 4: "S4"}
+        tag = tag_map.get(speaker, "info")
+        label = label_map.get(speaker, "–")
         self.log_line(f"[{label}] {text}", tag=tag)
 
     def log_error(self, text: str) -> None:

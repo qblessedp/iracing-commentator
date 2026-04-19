@@ -23,8 +23,17 @@ python -m PyInstaller ^
     --hidden-import google.generativeai ^
     --hidden-import edge_tts ^
     --hidden-import aiohttp ^
+    --hidden-import pyttsx3 ^
+    --hidden-import pyttsx3.drivers ^
+    --hidden-import pyttsx3.drivers.sapi5 ^
+    --hidden-import tts_sapi ^
+    --hidden-import tts_edge ^
+    --hidden-import tts_elevenlabs ^
+    --hidden-import facts_provider ^
     --hidden-import templates ^
     --hidden-import updater ^
+    --add-data "data;data" ^
+    --collect-submodules pyttsx3 ^
     --collect-submodules edge_tts ^
     --collect-submodules aiohttp ^
     --collect-submodules elevenlabs ^

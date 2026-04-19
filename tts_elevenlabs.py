@@ -17,11 +17,18 @@ class TTSElevenLabs:
         api_key: str,
         voice_id_1: str,
         voice_id_2: str,
+        voice_id_3: str = "",
+        voice_id_4: str = "",
         model: str = DEFAULT_MODEL,
         volume: float = 1.0,
     ):
         self.api_key = (api_key or "").strip()
-        self.voices = {1: (voice_id_1 or "").strip(), 2: (voice_id_2 or "").strip()}
+        self.voices = {
+            1: (voice_id_1 or "").strip(),
+            2: (voice_id_2 or "").strip(),
+            3: (voice_id_3 or "").strip(),
+            4: (voice_id_4 or "").strip(),
+        }
         self.model = model
         self._volume = max(0.0, min(1.0, float(volume)))
         self._queue: queue.Queue[tuple[str, int]] = queue.Queue(maxsize=8)
@@ -49,10 +56,18 @@ class TTSElevenLabs:
         except queue.Full:
             pass
 
+    def _resolve_voice(self, speaker: int) -> str:
+        """Return the voice ID for this speaker, falling back to voice_1
+        when the slot is empty so speakers 3 and 4 still play something."""
+        vid = self.voices.get(speaker, "")
+        if vid:
+            return vid
+        return self.voices.get(1, "")
+
     def speak(self, text: str, speaker: int) -> None:
         if not text or speaker not in self.voices:
             return
-        if not self.voices[speaker] or not self.api_key:
+        if not self._resolve_voice(speaker) or not self.api_key:
             logger.debug("speak skipped: missing voice_id or api_key")
             return
         self.start()
@@ -70,7 +85,7 @@ class TTSElevenLabs:
             if self._stop.is_set() or not text:
                 continue
             try:
-                audio = self._synthesize(text, self.voices[speaker])
+                audio = self._synthesize(text, self._resolve_voice(speaker))
                 if audio:
                     self._play(audio)
                     self.last_error = None
@@ -119,9 +134,8 @@ class TTSElevenLabs:
             client = self._get_client()
             voices = client.voices.search(page_size=1)
             _ = voices
-            missing = [s for s, v in self.voices.items() if not v]
-            if missing:
-                return False, f"Voice IDs missing for speaker(s) {missing}"
+            if not self.voices.get(1):
+                return False, "Voice ID missing for Speaker 1 (play-by-play)"
             return True, "OK"
         except Exception as e:
             return False, f"API error: {e}"

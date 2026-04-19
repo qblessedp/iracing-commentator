@@ -43,13 +43,16 @@ def test_generate_returns_empty_when_no_events():
 
 
 def test_generate_alternates_speakers():
+    """Overtake events have affinity [2, 4]; consecutive overtakes pick
+    2 then 4 (avoid repeating the last speaker)."""
     c = AICommentator("openai", "sk-test")
     _patch(c, "Into turn one, Alice goes wide!")
     r1 = c.generate([{"type": "overtake", "driver": "Alice", "from_pos": 2, "to_pos": 1}], "Race", "English")
     c._last_call = 0.0
     r2 = c.generate([{"type": "overtake", "driver": "Bob", "from_pos": 4, "to_pos": 3}], "Race", "English")
-    assert r1["speaker"] == 1
-    assert r2["speaker"] == 2
+    assert r1["speaker"] == 2
+    assert r2["speaker"] == 4
+    assert r1["speaker"] != r2["speaker"]
 
 
 def test_rate_limit_blocks_second_call():
@@ -73,7 +76,7 @@ def test_system_prompt_includes_persona_and_language():
     p1 = c._system_prompt(1, "Race", "Portuguese")
     p2 = c._system_prompt(2, "Race", "Portuguese")
     assert "play-by-play" in p1
-    assert "color commentator" in p2
+    assert "color analyst" in p2
     assert "Portuguese" in p1
 
 

@@ -1,0 +1,92 @@
+{
+  "spa": {
+    "name": "Spa-Francorchamps",
+    "length_km": 7.004,
+    "corners": 19,
+    "lap_record": "1:41.252",
+    "elevation_m": 100,
+    "opened_year": 1921,
+    "fun_fact": "Eau Rouge into Raidillon is one of the most famous corner sequences in motorsport, climbing nearly 40 metres in a blind flick."
+  },
+  "monza": {
+    "name": "Autodromo Nazionale Monza",
+    "length_km": 5.793,
+    "corners": 11,
+    "lap_record": "1:21.046",
+    "elevation_m": 17,
+    "opened_year": 1922,
+    "fun_fact": "Known as the Temple of Speed, cars spend over 80 percent of a lap at full throttle here."
+  },
+  "silverstone": {
+    "name": "Silverstone Circuit",
+    "length_km": 5.891,
+    "corners": 18,
+    "lap_record": "1:27.097",
+    "elevation_m": 15,
+    "opened_year": 1948,
+    "fun_fact": "Built on a former WWII RAF bomber airfield. Maggotts-Becketts-Chapel is one of the fastest sequences in F1."
+  },
+  "nurburgring_gp": {
+    "name": "Nurburgring GP-Strecke",
+    "length_km": 5.148,
+    "corners": 15,
+    "lap_record": "1:27.436",
+    "elevation_m": 56,
+    "opened_year": 1984,
+    "fun_fact": "The modern GP circuit sits next to the legendary 20.8 km Nordschleife, often called the Green Hell."
+  },
+  "suzuka": {
+    "name": "Suzuka International Racing Course",
+    "length_km": 5.807,
+    "corners": 18,
+    "lap_record": "1:30.983",
+    "elevation_m": 40,
+    "opened_year": 1962,
+    "fun_fact": "One of the only figure-eight layouts in top-level motorsport, with the back straight crossing over the esses."
+  },
+  "watkins_glen": {
+    "name": "Watkins Glen International",
+    "length_km": 5.435,
+    "corners": 11,
+    "lap_record": "1:41.062",
+    "elevation_m": 132,
+    "opened_year": 1956,
+    "fun_fact": "The Glen hosted the US Grand Prix for 20 years and is still regarded as one of America's great road courses."
+  },
+  "road_america": {
+    "name": "Road America",
+    "length_km": 6.515,
+    "corners": 14,
+    "lap_record": "1:39.866",
+    "elevation_m": 82,
+    "opened_year": 1955,
+    "fun_fact": "The Kink at Turn 11 is famously taken flat-out in top prototypes, with zero margin for error."
+  },
+  "interlagos": {
+    "name": "Autodromo Jose Carlos Pace",
+    "length_km": 4.309,
+    "corners": 15,
+    "lap_record": "1:10.540",
+    "elevation_m": 43,
+    "opened_year": 1940,
+    "fun_fact": "One of only a handful of grand prix circuits that runs anti-clockwise, known for dramatic weather swings."
+  },
+  "cota": {
+    "name": "Circuit of the Americas",
+    "length_km": 5.513,
+    "corners": 20,
+    "lap_record": "1:36.169",
+    "elevation_m": 41,
+    "opened_year": 2012,
+    "fun_fact": "Turn 1 is an uphill blind apex with a 40 metre climb from the grid, one of the steepest in F1."
+  },
+  "daytona_road": {
+    "name": "Daytona International Speedway Road Course",
+    "length_km": 5.729,
+    "corners": 12,
+    "lap_record": "1:33.685",
+    "elevation_m": 9,
+    "opened_year": 1959,
+    "fun_fact": "The road course uses the 31-degree banking of the oval at the West Horseshoe and NASCAR tri-oval."
+  }
+}
