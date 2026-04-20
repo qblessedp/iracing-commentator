@@ -22,20 +22,30 @@ class CommentatorApp:
             on_start=self.start,
             on_stop=self.stop,
             on_volume_change=self.set_volume,
+            on_language_change=self.set_language,
         )
         self.worker_thread = None
         self.stop_flag = threading.Event()
         self.tts: TTSElevenLabs | TTSEdge | TTSSapi | None = None
+        self._lang_code = "en"
+        self._lang_guidance = ""
 
     def set_volume(self, pct: int) -> None:
         """Live-update commentary volume (0-100). Safe to call with no worker running."""
         if self.tts is not None:
             self.tts.set_volume(max(0, min(100, int(pct))) / 100.0)
 
+    def set_language(self, lang_code: str) -> None:
+        """Live-update language while worker is running."""
+        self._lang_code = lang_code
+        self._lang_guidance = LANGUAGE_GUIDANCE.get(lang_code, "")
+
     def run(self) -> None:
         self.gui.mainloop()
 
     def start(self, cfg: dict) -> None:
+        self._lang_code = cfg.get("language", "en")
+        self._lang_guidance = LANGUAGE_GUIDANCE.get(self._lang_code, "")
         self.stop_flag.clear()
         self.worker_thread = threading.Thread(target=self._worker, args=(cfg,), daemon=True)
         self.worker_thread.start()
@@ -79,12 +89,9 @@ class CommentatorApp:
         self.tts = tts
         tts.start()
         self.gui.log_line(f"TTS: {tts_provider}", tag="info")
-        lang_code = cfg["language"]
-        language = LANGUAGES.get(lang_code, "English")
-        guidance = LANGUAGE_GUIDANCE.get(lang_code, "")
 
         self.gui.set_status("Waiting for iRacing...", level="warn")
-        self.gui.log_line(f"Language: {language}", tag="info")
+        self.gui.log_line(f"Language: {LANGUAGES.get(self._lang_code, 'English')}", tag="info")
 
         was_connected = False
         event_count = 0
@@ -113,7 +120,8 @@ class CommentatorApp:
                     event_count += len(events)
                     last_event_ts = time.monotonic()
                     result = commentator.generate(
-                        events, snapshot.get("session_type", "Race"), language, guidance
+                        events, snapshot.get("session_type", "Race"),
+                        LANGUAGES.get(self._lang_code, "English"), self._lang_guidance,
                     )
                     if result["text"]:
                         self.gui.log_commentary(result["speaker"], result["text"])
@@ -128,8 +136,8 @@ class CommentatorApp:
                             filler = commentator.generate_filler(
                                 subject,
                                 snapshot.get("session_type", "Race"),
-                                language,
-                                guidance,
+                                LANGUAGES.get(self._lang_code, "English"),
+                                self._lang_guidance,
                             )
                             if filler.get("text"):
                                 self.gui.log_commentary(filler["speaker"], filler["text"])

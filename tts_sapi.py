@@ -120,10 +120,19 @@ class TTSSapi:
         engine.setProperty("volume", self._volume)
 
     def _run(self) -> None:
-        # Lazily create the engine inside the worker thread so COM lives
-        # in a single thread (pyttsx3 / SAPI is not thread-safe across
-        # threads).
+        # pyttsx3 engine must live entirely inside this thread — COM/SAPI
+        # is not thread-safe across threads.
+        #
+        # Known pyttsx3/SAPI limitation: setProperty("voice", ...) only
+        # takes effect reliably on a *fresh* engine instance. Reusing the
+        # same engine and switching voices mid-session causes the voice
+        # change to be silently ignored. Fix: reinit the engine whenever
+        # the speaker changes so each persona always gets the right voice.
+        import pyttsx3
+
         engine = None
+        _last_speaker: int | None = None
+
         while not self._stop.is_set():
             try:
                 text, speaker = self._queue.get(timeout=0.5)
@@ -132,10 +141,16 @@ class TTSSapi:
             if self._stop.is_set() or not text:
                 continue
             try:
-                if engine is None:
-                    import pyttsx3
+                if engine is None or speaker != _last_speaker:
+                    # Tear down previous engine cleanly before reiniting.
+                    if engine is not None:
+                        try:
+                            engine.stop()
+                        except Exception:
+                            pass
                     engine = pyttsx3.init()
-                self._configure(engine, speaker)
+                    self._configure(engine, speaker)
+                    _last_speaker = speaker
                 engine.say(text)
                 engine.runAndWait()
                 self.last_error = None
@@ -153,6 +168,7 @@ class TTSSapi:
                 except Exception:
                     pass
                 engine = None
+                _last_speaker = None
 
     def validate(self) -> tuple[bool, str]:
         """Check pyttsx3 is installed and at least one voice is available."""

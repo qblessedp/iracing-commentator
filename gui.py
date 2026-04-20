@@ -44,7 +44,7 @@ FONT_LOG_FALLBACK = ("Consolas", 10)
 
 
 class CommentatorGUI(tk.Tk):
-    def __init__(self, on_start=None, on_stop=None, on_volume_change=None):
+    def __init__(self, on_start=None, on_stop=None, on_volume_change=None, on_language_change=None):
         super().__init__()
         self.title(f"iRacing Commentator v{APP_VERSION}")
         self.geometry("640x780")
@@ -54,6 +54,7 @@ class CommentatorGUI(tk.Tk):
         self.on_start = on_start
         self.on_stop = on_stop
         self.on_volume_change = on_volume_change
+        self.on_language_change = on_language_change
         self.running = False
         self.config_data = load_config()
 
@@ -232,26 +233,43 @@ class CommentatorGUI(tk.Tk):
         self.tts_status_indicator = ttk.Label(frame2, textvariable=self.tts_status_var, font=FONT_UI_BOLD)
         self.tts_status_indicator.grid(row=1, column=3, sticky="w", pady=4)
 
+        self.preview_btns: dict[int, ttk.Button] = {}
+
         ttk.Label(frame2, text="Speaker 1 — Play-by-play").grid(row=2, column=0, sticky="w", pady=4)
         self.voice1_var = tk.StringVar(value=self.config_data["voice_id_1"])
         ttk.Entry(frame2, textvariable=self.voice1_var, width=44, font=FONT_UI).grid(
             row=2, column=1, sticky="w", padx=10, pady=4
         )
+        _pb1 = ttk.Button(frame2, text="▶", width=3, command=lambda: self._preview_voice(1))
+        _pb1.grid(row=2, column=2, sticky="w", padx=(0, 4), pady=4)
+        self.preview_btns[1] = _pb1
+
         ttk.Label(frame2, text="Speaker 2 — Color Analyst").grid(row=3, column=0, sticky="w", pady=4)
         self.voice2_var = tk.StringVar(value=self.config_data["voice_id_2"])
         ttk.Entry(frame2, textvariable=self.voice2_var, width=44, font=FONT_UI).grid(
             row=3, column=1, sticky="w", padx=10, pady=4
         )
+        _pb2 = ttk.Button(frame2, text="▶", width=3, command=lambda: self._preview_voice(2))
+        _pb2.grid(row=3, column=2, sticky="w", padx=(0, 4), pady=4)
+        self.preview_btns[2] = _pb2
+
         ttk.Label(frame2, text="Speaker 3 — Veteran Ex-Driver").grid(row=4, column=0, sticky="w", pady=4)
         self.voice3_var = tk.StringVar(value=self.config_data.get("voice_id_3", ""))
         ttk.Entry(frame2, textvariable=self.voice3_var, width=44, font=FONT_UI).grid(
             row=4, column=1, sticky="w", padx=10, pady=4
         )
+        _pb3 = ttk.Button(frame2, text="▶", width=3, command=lambda: self._preview_voice(3))
+        _pb3.grid(row=4, column=2, sticky="w", padx=(0, 4), pady=4)
+        self.preview_btns[3] = _pb3
+
         ttk.Label(frame2, text="Speaker 4 — Hype Commentator").grid(row=5, column=0, sticky="w", pady=4)
         self.voice4_var = tk.StringVar(value=self.config_data.get("voice_id_4", ""))
         ttk.Entry(frame2, textvariable=self.voice4_var, width=44, font=FONT_UI).grid(
             row=5, column=1, sticky="w", padx=10, pady=4
         )
+        _pb4 = ttk.Button(frame2, text="▶", width=3, command=lambda: self._preview_voice(4))
+        _pb4.grid(row=5, column=2, sticky="w", padx=(0, 4), pady=4)
+        self.preview_btns[4] = _pb4
         self._apply_tts_provider_state()
         self._apply_text_provider_state()
 
@@ -262,14 +280,16 @@ class CommentatorGUI(tk.Tk):
         current_code = self.config_data["language"]
         current_label = LANGUAGE_LABELS.get(current_code, LANGUAGE_LABELS["en"])
         self.lang_display_var = tk.StringVar(value=current_label)
-        ttk.Combobox(
+        lang_combo = ttk.Combobox(
             frame3,
             textvariable=self.lang_display_var,
             values=list(LANGUAGE_LABELS.values()),
             state="readonly",
             width=28,
             font=FONT_UI,
-        ).grid(row=0, column=0, sticky="w", pady=4)
+        )
+        lang_combo.grid(row=0, column=0, sticky="w", pady=4)
+        lang_combo.bind("<<ComboboxSelected>>", self._on_language_change)
 
         # Volume (commentary playback only)
         frame4 = ttk.LabelFrame(self, text="Commentary Volume")
@@ -387,6 +407,14 @@ class CommentatorGUI(tk.Tk):
             "volume": int(self.volume_var.get()),
             "tts_provider": clean(self.tts_provider_var.get()) or "elevenlabs",
         }
+
+    def _on_language_change(self, _event=None) -> None:
+        lang_code = self._lang_display_to_code.get(self.lang_display_var.get(), "en")
+        if self.on_language_change:
+            try:
+                self.on_language_change(lang_code)
+            except Exception:
+                pass
 
     def _on_tts_provider_change(self, _event=None) -> None:
         self._apply_tts_provider_state()
@@ -508,6 +536,65 @@ class CommentatorGUI(tk.Tk):
                     f"{label} test: {msg}" if not ok else f"{label} OK",
                 )
             self.after(0, update)
+
+        threading.Thread(target=worker, daemon=True).start()
+
+    def _preview_voice(self, slot: int) -> None:
+        import time
+
+        PREVIEW_TEXTS = {
+            1: "Lights out and away we go! A brilliant start from the front!",
+            2: "The strategy here is absolutely crucial. We could see an undercut play out.",
+            3: "Back in my day, you had to earn every position. Pure racecraft.",
+            4: "OH MY WORD! That is ABSOLUTELY UNBELIEVABLE! What a moment!",
+        }
+        text = PREVIEW_TEXTS.get(slot, "Testing voice preview.")
+        cfg = self._collect()
+        provider = cfg.get("tts_provider", "elevenlabs").lower()
+        api_key = cfg.get("elevenlabs_api_key", "")
+        v = {i: cfg.get(f"voice_id_{i}", "") for i in range(1, 5)}
+        volume = max(0.0, min(1.0, cfg.get("volume", 100) / 100.0))
+
+        btn = self.preview_btns.get(slot)
+        if btn:
+            btn.configure(state="disabled")
+        self.log_line(f"▶ Previewing Speaker {slot}...", tag="info")
+
+        def worker() -> None:
+            tts = None
+            try:
+                if provider == "edge":
+                    tts = TTSEdge(
+                        voice_id_1=v[1], voice_id_2=v[2],
+                        voice_id_3=v[3], voice_id_4=v[4],
+                        volume=volume,
+                    )
+                elif provider == "sapi":
+                    tts = TTSSapi(
+                        voice_id_1=v[1], voice_id_2=v[2],
+                        voice_id_3=v[3], voice_id_4=v[4],
+                        volume=volume,
+                    )
+                else:
+                    tts = TTSElevenLabs(
+                        api_key=api_key,
+                        voice_id_1=v[1], voice_id_2=v[2],
+                        voice_id_3=v[3], voice_id_4=v[4],
+                        volume=volume,
+                    )
+                tts.start()
+                tts.speak(text, slot)
+                time.sleep(8)
+            except Exception as e:
+                self.after(0, lambda err=e: self.log_line(f"Preview error: {err}", tag="error"))
+            finally:
+                if tts:
+                    try:
+                        tts.stop()
+                    except Exception:
+                        pass
+                if btn:
+                    self.after(0, lambda: btn.configure(state="normal"))
 
         threading.Thread(target=worker, daemon=True).start()
 

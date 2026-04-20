@@ -29,7 +29,7 @@ iracing-commentator/
 ├── tts_sapi.py          # TTSSapi — Windows SAPI via pyttsx3 (100% offline)
 ├── templates.py         # TemplateCommentator — phrase pools + generate_filler offline
 ├── config.py            # load/save + migração 2→4 vozes + defaults por provider
-├── updater.py           # check_and_apply GitHub releases, APP_VERSION=1.0.9
+├── updater.py           # check_and_apply GitHub releases, APP_VERSION=1.1.1
 ├── data/
 │   ├── track_facts.json     # ~10 pistas curadas (length_km, corners, lap_record, fun_fact)
 │   └── driver_facts.json    # ~15 pilotos curados (irating_peak, known_for, home_track)
@@ -240,6 +240,6 @@ Todos os testes correm sem API keys reais (mocks) e sem SAPI instalado (validate
 ## Próximos passos (opcionais)
 
 - Mais factos curados em `data/driver_facts.json` (comunidade contribui via PR)
-- Voice preview na UI (botão "ouvir esta voz" por slot)
+- [x] ~~Voice preview na UI~~ → implementado (v1.1.0): botão `▶` por slot, frase de teste por persona, thread dedicada, re-enable após 8s
 - Detecção automática de idioma do YAML (auto-seleccionar EN/PT)
 - Suporte macOS/Linux para equivalentes SAPI (NSSpeechSynthesizer / espeak) — actualmente Windows-only
