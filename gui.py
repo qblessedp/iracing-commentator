@@ -584,17 +584,20 @@ class CommentatorGUI(tk.Tk):
                     )
                 tts.start()
                 tts.speak(text, slot)
-                time.sleep(8)
             except Exception as e:
                 self.after(0, lambda err=e: self.log_line(f"Preview error: {err}", tag="error"))
             finally:
-                if tts:
-                    try:
-                        tts.stop()
-                    except Exception:
-                        pass
                 if btn:
                     self.after(0, lambda: btn.configure(state="normal"))
+                if tts:
+                    def _teardown(t=tts):
+                        import time as _time
+                        _time.sleep(6)
+                        try:
+                            t.stop()
+                        except Exception:
+                            pass
+                    threading.Thread(target=_teardown, daemon=True).start()
 
         threading.Thread(target=worker, daemon=True).start()
 

@@ -1655,6 +1655,973 @@ TEMPLATES: dict[str, dict[str, dict[str, list[str]]]] = {
 }
 
 
+# ---------------------------------------------------------------------------
+# Speaker-persona phrase pools  {speaker_id: {lang: {event_key: [lines]}}}
+# Speaker 1 = play-by-play (David Croft style)
+# Speaker 2 = colour analyst (Martin Brundle style)
+# Speaker 3 = veteran ex-driver ("back in my day")
+# Speaker 4 = hype commentator (CAPS, UNBELIEVABLE)
+# ---------------------------------------------------------------------------
+SPEAKER_TEMPLATES: dict[int, dict[str, dict[str, list[str]]]] = {
+    1: {
+        "en": {
+            "overtake": [
+                "{driver} makes the move! P{to_pos} — and it sticks!",
+                "There it is! {driver} through into P{to_pos}, clean as you like!",
+                "Around the outside! {driver} takes P{to_pos} with a brilliant pass!",
+                "Late on the brakes, {driver} goes for it — and it comes off! P{to_pos}!",
+                "{driver} dives up the inside and nails it! P{to_pos}!",
+            ],
+            "lead_change": [
+                "WE HAVE A NEW LEADER! {new_driver} takes it from {old_driver}!",
+                "{new_driver} to the front! What a moment in this race!",
+                "The lead changes hands — {new_driver} is now P1!",
+                "Unbelievable! {new_driver} seizes the lead from {old_driver}!",
+                "{new_driver} goes through! {old_driver} will not like that at all!",
+            ],
+            "race_start": [
+                "LIGHTS OUT! And we are racing!",
+                "Five red lights — and they're off! What a start!",
+                "And away we go! The field thunders into Turn 1!",
+                "Lights out and away we go — the most exciting two words in motorsport!",
+            ],
+            "battle": [
+                "{chaser_driver} all over the back of {leader_driver} — this is fantastic!",
+                "What a fight! {chaser_driver} within a second of {leader_driver}!",
+                "Neck and neck! {chaser_driver} hunting down {leader_driver} lap after lap!",
+                "The gap is nothing — {chaser_driver} is right there on {leader_driver}!",
+                "{leader_driver} defending hard, {chaser_driver} looking everywhere!",
+            ],
+            "pit_entry": [
+                "{driver} dives into the pits! The stop begins!",
+                "Into the pit lane comes {driver} — let's see how quick the crew are!",
+                "{driver} peels off — the strategy play is on!",
+            ],
+            "pit_exit": [
+                "{driver} back out! The crew did their job — now it's all about the lap!",
+                "Out of the pit lane, {driver} rejoins — what a stop that was!",
+                "{driver} back in the race! The pit exit is clear!",
+            ],
+            "fastest_lap": [
+                "FASTEST LAP! {driver} sets the benchmark! That is seriously quick!",
+                "{driver} goes to the top of the timesheets — purple across the board!",
+                "Incredible lap from {driver}! That is the fastest lap of the race!",
+            ],
+            "accident_suspected": [
+                "Something has happened to {driver}! The car is stopped!",
+                "Oh no — {driver} is stranded! Safety car may be needed!",
+                "There's trouble on track — {driver} is not moving!",
+            ],
+            "laps_to_go": [
+                "We are in the closing stages! Every point matters now!",
+                "The finish line is coming — who wants it more?",
+                "Hearts pounding in the grandstands as we count down the laps!",
+            ],
+            "flag_green": [
+                "GREEN FLAG! We are racing again!",
+                "Safety car in — green flag — let's go!",
+                "And it's green! Full racing speed resumed!",
+            ],
+            "flag_yellow": [
+                "Yellow flags! Slow down, there is a hazard on track!",
+                "Caution out — yellow flag sector, watch your speed!",
+                "Yellow, yellow, yellow — danger on circuit!",
+            ],
+            "flag_red": [
+                "RED FLAG! The race has been stopped!",
+                "It's a red flag — session neutralised, bring it home safely!",
+                "Red flag shown — all cars must return to the pits!",
+            ],
+            "flag_checkered": [
+                "IT IS LIGHTS OUT AND CHEQUERED FLAG! What a race!",
+                "The chequered flag falls! We have a winner!",
+                "That's it! Flag to flag — what an incredible race!",
+            ],
+        },
+        "pt": {
+            "overtake": [
+                "{driver} faz a ultrapassagem! P{to_pos} — e confirma!",
+                "Está feito! {driver} para P{to_pos} com uma manobra brilhante!",
+                "Pela parte exterior! {driver} conquista P{to_pos}!",
+                "Travagem tardíssima, {driver} vai por dentro — e consegue! P{to_pos}!",
+                "{driver} mergulha pelo interior e acerta! P{to_pos}!",
+            ],
+            "lead_change": [
+                "TEMOS UM NOVO LÍDER! {new_driver} ultrapassa {old_driver}!",
+                "{new_driver} para a frente! Que momento nesta corrida!",
+                "A liderança muda de mãos — {new_driver} está agora em P1!",
+                "Incrível! {new_driver} apodera-se da liderança de {old_driver}!",
+            ],
+            "race_start": [
+                "APAGAM-SE AS LUZES! E estamos em corrida!",
+                "Cinco luzes vermelhas — e arrancam! Que arranque!",
+                "E lá vamos nós! O pelotão troveja para a Curva 1!",
+            ],
+            "battle": [
+                "{chaser_driver} colado ao {leader_driver} — isto é fantástico!",
+                "Que duelo! {chaser_driver} a menos de um segundo de {leader_driver}!",
+                "A diferença é nula — {chaser_driver} está mesmo ali!",
+                "{leader_driver} a defender com unhas e dentes, {chaser_driver} à espreita!",
+            ],
+            "pit_entry": [
+                "{driver} entra nas boxes! A paragem começa!",
+                "Para a pit lane vai {driver} — vejamos a rapidez da equipa!",
+                "{driver} sai da pista — a estratégia está em jogo!",
+            ],
+            "pit_exit": [
+                "{driver} de volta à pista! A equipa fez o seu trabalho!",
+                "Saída das boxes, {driver} regressa — que paragem foi essa!",
+            ],
+            "fastest_lap": [
+                "VOLTA MAIS RÁPIDA! {driver} estabelece a referência!",
+                "{driver} vai ao topo dos tempos — roxo em todo o lado!",
+                "Volta incrível de {driver}! É a volta mais rápida da corrida!",
+            ],
+            "accident_suspected": [
+                "Algo aconteceu a {driver}! O carro está parado!",
+                "Oh não — {driver} está imobilizado! Safety car pode ser necessário!",
+            ],
+            "flag_green": [
+                "BANDEIRA VERDE! Estamos em corrida novamente!",
+                "Safety car entra — bandeira verde — vamos lá!",
+            ],
+            "flag_yellow": [
+                "Bandeiras amarelas! Abrandam, há perigo na pista!",
+                "Atenção — sector de bandeira amarela!",
+            ],
+            "flag_red": [
+                "BANDEIRA VERMELHA! A corrida foi interrompida!",
+                "Bandeira vermelha — sessão neutralizada!",
+            ],
+            "flag_checkered": [
+                "BANDEIRA XADREZ! Que corrida incrível!",
+                "A bandeira xadrez desce! Temos um vencedor!",
+            ],
+        },
+        "es": {
+            "overtake": [
+                "¡{driver} hace el adelantamiento! ¡P{to_pos} — y se confirma!",
+                "¡Ahí está! ¡{driver} a P{to_pos} con una maniobra brillante!",
+                "¡Por el exterior! ¡{driver} conquista P{to_pos}!",
+                "¡Frenada tardísima, {driver} se mete por dentro — y lo consigue! ¡P{to_pos}!",
+            ],
+            "lead_change": [
+                "¡TENEMOS UN NUEVO LÍDER! ¡{new_driver} supera a {old_driver}!",
+                "¡{new_driver} al frente! ¡Qué momento en esta carrera!",
+                "El liderato cambia de manos — ¡{new_driver} está ahora en P1!",
+            ],
+            "race_start": [
+                "¡SE APAGAN LAS LUCES! ¡Y estamos corriendo!",
+                "¡Cinco luces rojas — y salen! ¡Qué salida!",
+                "¡Y allá vamos! ¡El pelotón truena hacia la Curva 1!",
+            ],
+            "battle": [
+                "¡{chaser_driver} pegado a {leader_driver} — esto es fantástico!",
+                "¡Qué batalla! ¡{chaser_driver} a menos de un segundo de {leader_driver}!",
+                "¡La diferencia es nada — {chaser_driver} está justo ahí!",
+            ],
+            "pit_entry": [
+                "¡{driver} entra en boxes! ¡Comienza la parada!",
+                "¡Hacia el pit lane va {driver} — veamos la rapidez del equipo!",
+            ],
+            "pit_exit": [
+                "¡{driver} de vuelta a pista! ¡El equipo hizo su trabajo!",
+                "¡Salida de boxes, {driver} regresa — qué parada fue esa!",
+            ],
+            "fastest_lap": [
+                "¡VUELTA RÁPIDA! ¡{driver} establece la referencia!",
+                "¡{driver} va al top de los tiempos — morado por todas partes!",
+            ],
+            "accident_suspected": [
+                "¡Algo le ha pasado a {driver}! ¡El coche está parado!",
+                "¡Oh no — {driver} está inmovilizado! ¡Puede ser necesario el coche de seguridad!",
+            ],
+            "flag_green": [
+                "¡BANDERA VERDE! ¡Volvemos a correr!",
+                "¡Safety car entra — bandera verde — vamos allá!",
+            ],
+            "flag_yellow": [
+                "¡Banderas amarillas! ¡Reduzcan velocidad, hay peligro en pista!",
+                "¡Atención — sector de bandera amarilla!",
+            ],
+            "flag_red": [
+                "¡BANDERA ROJA! ¡La carrera ha sido detenida!",
+                "¡Bandera roja — sesión neutralizada!",
+            ],
+            "flag_checkered": [
+                "¡BANDERA A CUADROS! ¡Qué carrera increíble!",
+                "¡Cae la bandera a cuadros! ¡Tenemos un ganador!",
+            ],
+        },
+        "jp": {
+            "overtake": [
+                "{driver}がオーバーテイク！P{to_pos}、決まった！",
+                "やった！{driver}がP{to_pos}へ、見事なパス！",
+                "アウトサイドから！{driver}がP{to_pos}を奪取！",
+                "遅いブレーキング、{driver}がインに飛び込んで成功！P{to_pos}！",
+            ],
+            "lead_change": [
+                "新しいリーダー！{new_driver}が{old_driver}を抜いてトップへ！",
+                "{new_driver}が先頭に！このレースの最高の瞬間！",
+                "リードが変わった — {new_driver}がP1！",
+            ],
+            "race_start": [
+                "ライトが消えた！レーススタート！",
+                "5つの赤いライト — スタート！素晴らしい！",
+                "さあ行くぞ！フィールドがターン1へ！",
+            ],
+            "battle": [
+                "{chaser_driver}が{leader_driver}に張り付いている — 素晴らしい！",
+                "何というバトル！{chaser_driver}が{leader_driver}の1秒以内に！",
+                "差はほぼゼロ — {chaser_driver}がすぐそこに！",
+            ],
+            "pit_entry": [
+                "{driver}がピットへ！ストップが始まる！",
+                "ピットレーンへ{driver} — チームの速さを見よう！",
+            ],
+            "pit_exit": [
+                "{driver}がコースへ戻る！チームの仕事は完璧！",
+                "ピットアウト、{driver}が復帰 — 素晴らしいストップだった！",
+            ],
+            "fastest_lap": [
+                "ファステストラップ！{driver}が基準タイムを叩き出した！",
+                "{driver}がタイムシートのトップへ — 全セクター紫！",
+            ],
+            "accident_suspected": [
+                "{driver}に何かあった！車が停止している！",
+                "大変だ — {driver}が動いていない！セーフティカーが必要かも！",
+            ],
+            "flag_green": [
+                "グリーンフラッグ！レース再開！",
+                "セーフティカーイン — グリーン！行くぞ！",
+            ],
+            "flag_yellow": [
+                "イエローフラッグ！コース上に危険！スローダウン！",
+                "注意 — イエローフラッグセクター！",
+            ],
+            "flag_red": [
+                "赤旗！レースが中断された！",
+                "赤旗 — セッション中断、安全に戻れ！",
+            ],
+            "flag_checkered": [
+                "チェッカーフラッグ！素晴らしいレースだった！",
+                "チェッカーが降りた！優勝者決定！",
+            ],
+        },
+    },
+    2: {
+        "en": {
+            "overtake": [
+                "{driver} found the DRS window — brilliant opportunism right there.",
+                "He's been patient all lap and he takes it — {driver} through to P{to_pos}.",
+                "That's what tyre management buys you. {driver} with the fresher rubber, P{to_pos}.",
+                "Into the hairpin — {driver} outbrakes {prev_driver} and takes the position. Clinical.",
+                "The undercut set that up beautifully. {driver} now running P{to_pos}.",
+            ],
+            "lead_change": [
+                "The strategy call paid off — {new_driver} inherits the lead with fresh tyres.",
+                "{new_driver} to the front. {old_driver} will be on the radio asking questions.",
+                "Tyre deg was always going to decide this. {new_driver} leads now.",
+                "That's the pit-stop window delivered perfectly — {new_driver} ahead.",
+                "The numbers finally add up for {new_driver}. P1 and it looks deserved.",
+            ],
+            "race_start": [
+                "Pole position advantage — let's see if {driver} can convert it into Turn 1.",
+                "Clean start. The formation is holding — now it's about the first stint.",
+                "Tyre temperature, fuel load, first-lap caution — everything on the line.",
+            ],
+            "battle": [
+                "Tyre deg is going to be everything here. {leader_driver} is struggling.",
+                "{chaser_driver} has the pace but {leader_driver} has the racing line — fascinating.",
+                "DRS won't be enough on its own. {chaser_driver} needs a mistake from {leader_driver}.",
+                "Watch the gap on the straight — {chaser_driver} getting close enough for a lunge.",
+                "This is about who blinks first. Both drivers absolutely on the limit.",
+            ],
+            "pit_entry": [
+                "{driver} comes in — they'll be looking at the tyre wear very carefully.",
+                "The call is made. {driver} pits — let's see what compound they take.",
+                "Interesting timing for {driver}. That's the undercut play being attempted.",
+            ],
+            "pit_exit": [
+                "{driver} emerges on — we'll see if those are the right tyres for this stint.",
+                "Clean out-lap needed. {driver} has to warm those tyres quickly.",
+                "The pit crew delivered. Now it's on {driver} to make the strategy work.",
+            ],
+            "fastest_lap": [
+                "{driver} going for the fastest lap point — and he's got it. Smart.",
+                "Purple in all three sectors for {driver}. That's the tyre performing exactly as planned.",
+                "Fastest lap. {driver} on a one-stop — that extra point could matter.",
+            ],
+            "accident_suspected": [
+                "{driver} has stopped. Could be mechanical — or contact we haven't seen yet.",
+                "That car isn't moving and the marshals are out. Safety car incoming, I'd expect.",
+                "The team will be analysing the data. Something's gone wrong for {driver}.",
+            ],
+            "laps_to_go": [
+                "Tyre management in the closing stages — who has more rubber left?",
+                "We're in the window where strategy calls can flip everything.",
+                "The engineers will be watching deg curves very closely right now.",
+            ],
+            "flag_green": [
+                "Green flag. Tyre temperatures will dictate the restart pace.",
+                "Racing resumes. The question is who manages the tyres best in this phase.",
+                "Green — and now the real race begins again.",
+            ],
+            "flag_yellow": [
+                "Yellow. Smart move to back off — track position is precious here.",
+                "Caution period. Teams will be doing their sums on pit timing.",
+                "Yellow flags — opportunity for some to pit under the caution.",
+            ],
+            "flag_red": [
+                "Red flag. The engineers will be going through every data point now.",
+                "Stoppage — and that changes the tyre strategy for everyone.",
+                "Red flag. Fresh tyres for all on the restart, which will mix things up.",
+            ],
+            "flag_checkered": [
+                "Chequered flag. The tyre strategy played out exactly as we thought it would.",
+                "It's over. All the pre-race planning comes down to this moment.",
+                "Chequered. A fine piece of strategic racing from start to finish.",
+            ],
+        },
+        "pt": {
+            "overtake": [
+                "{driver} encontrou a janela do DRS — oportunismo brilhante.",
+                "Paciente durante toda a volta e aproveita — {driver} para P{to_pos}.",
+                "É isso que a gestão de pneus traz. {driver} com borracha mais fresca, P{to_pos}.",
+                "No travão — {driver} freia mais tarde e conquista a posição. Clínico.",
+            ],
+            "lead_change": [
+                "A decisão estratégica resultou — {new_driver} herda a liderança com pneus frescos.",
+                "{new_driver} para a frente. {old_driver} vai estar no rádio a fazer perguntas.",
+                "A degradação de pneus sempre ia decidir isto. {new_driver} lidera agora.",
+            ],
+            "race_start": [
+                "Vantagem da pole — vamos ver se consegue converter na Curva 1.",
+                "Arranque limpo. A formação mantém-se — agora é sobre o primeiro stint.",
+            ],
+            "battle": [
+                "A degradação de pneus vai ser fundamental aqui. {leader_driver} está a sofrer.",
+                "{chaser_driver} tem o ritmo mas {leader_driver} tem a linha de corrida — fascinante.",
+                "O DRS sozinho não chega. {chaser_driver} precisa de um erro de {leader_driver}.",
+            ],
+            "pit_entry": [
+                "{driver} entra — vão analisar o desgaste de pneus com muito cuidado.",
+                "A decisão está tomada. {driver} vai às boxes — vejamos que composto levam.",
+            ],
+            "pit_exit": [
+                "{driver} sai — veremos se são os pneus certos para este stint.",
+                "Volta de saída limpa necessária. {driver} tem de aquecer esses pneus rapidamente.",
+            ],
+            "fastest_lap": [
+                "{driver} vai à volta mais rápida — e consegue. Inteligente.",
+                "Roxo nos três sectores para {driver}. O pneu a trabalhar como planeado.",
+            ],
+            "accident_suspected": [
+                "{driver} parou. Pode ser mecânico — ou contacto que ainda não vimos.",
+                "Aquele carro não se mexe e os comissários estão fora. Safety car a caminho.",
+            ],
+            "flag_green": [
+                "Bandeira verde. A temperatura dos pneus vai ditar o ritmo do restart.",
+                "Corrida retomada. A questão é quem gere melhor os pneus nesta fase.",
+            ],
+            "flag_yellow": [
+                "Amarela. Decisão inteligente abrandar — a posição na pista é preciosa.",
+                "Período de neutralização. As equipas vão calcular o timing das paragens.",
+            ],
+            "flag_red": [
+                "Bandeira vermelha. Os engenheiros vão analisar cada ponto de dados.",
+                "Paragem — e isso muda a estratégia de pneus para todos.",
+            ],
+            "flag_checkered": [
+                "Bandeira xadrez. A estratégia de pneus correu exactamente como prevíamos.",
+                "Acabou. Todo o planeamento pré-corrida resume-se a este momento.",
+            ],
+        },
+        "es": {
+            "overtake": [
+                "{driver} encontró la ventana del DRS — puro oportunismo brillante.",
+                "Paciente durante toda la vuelta y lo aprovecha — {driver} a P{to_pos}.",
+                "Eso es lo que da la gestión de neumáticos. {driver} con goma más fresca, P{to_pos}.",
+            ],
+            "lead_change": [
+                "La decisión estratégica dio resultado — {new_driver} hereda el liderato con neumáticos frescos.",
+                "{new_driver} al frente. {old_driver} estará en la radio haciendo preguntas.",
+            ],
+            "race_start": [
+                "Ventaja de la pole — veamos si puede convertirla en la Curva 1.",
+                "Salida limpia. Ahora todo depende del primer stint.",
+            ],
+            "battle": [
+                "La degradación de neumáticos lo será todo aquí. {leader_driver} está sufriendo.",
+                "{chaser_driver} tiene el ritmo pero {leader_driver} tiene la línea de carrera — fascinante.",
+            ],
+            "pit_entry": [
+                "{driver} entra — analizarán el desgaste de neumáticos con mucho cuidado.",
+                "La decisión está tomada. {driver} entra en boxes — veamos qué compuesto eligen.",
+            ],
+            "pit_exit": [
+                "{driver} sale — veremos si son los neumáticos correctos para este stint.",
+                "Vuelta de salida limpia necesaria. {driver} tiene que calentar esos neumáticos rápido.",
+            ],
+            "fastest_lap": [
+                "{driver} va a por la vuelta rápida — y la consigue. Inteligente.",
+                "Morado en los tres sectores para {driver}. El neumático funcionando según el plan.",
+            ],
+            "accident_suspected": [
+                "{driver} se ha parado. Puede ser mecánico — o contacto que aún no hemos visto.",
+                "Ese coche no se mueve y los comisarios están fuera. Coche de seguridad en camino.",
+            ],
+            "flag_green": [
+                "Bandera verde. La temperatura de neumáticos dictará el ritmo del relanzamiento.",
+                "Se reanuda la carrera. La clave es quién gestiona mejor los neumáticos.",
+            ],
+            "flag_yellow": [
+                "Amarilla. Decisión inteligente reducir — la posición en pista es preciosa.",
+                "Período de caución. Los equipos calcularán el momento de las paradas.",
+            ],
+            "flag_red": [
+                "Bandera roja. Los ingenieros repasarán cada dato ahora.",
+                "Detención — y eso cambia la estrategia de neumáticos para todos.",
+            ],
+            "flag_checkered": [
+                "Bandera a cuadros. La estrategia de neumáticos se desarrolló exactamente como pensábamos.",
+                "Ha terminado. Toda la planificación previa se resume en este momento.",
+            ],
+        },
+        "jp": {
+            "overtake": [
+                "{driver}がDRSウィンドウを見つけた — 素晴らしいオポチュニズム。",
+                "ずっと辛抱強く待って、ここで決める — {driver}がP{to_pos}へ。",
+                "タイヤマネジメントの成果。フレッシュタイヤの{driver}、P{to_pos}。",
+            ],
+            "lead_change": [
+                "戦略の判断が実った — {new_driver}がフレッシュタイヤでトップを受け継ぐ。",
+                "{new_driver}が先頭へ。{old_driver}は無線で質問攻めだろう。",
+            ],
+            "race_start": [
+                "ポールポジションのアドバンテージ — ターン1で活かせるか。",
+                "クリーンスタート。第1スティントが重要だ。",
+            ],
+            "battle": [
+                "ここではタイヤデグが全てだ。{leader_driver}は苦しんでいる。",
+                "{chaser_driver}はペースがあるが、{leader_driver}はレーシングラインを持っている — 見応えがある。",
+            ],
+            "pit_entry": [
+                "{driver}がピットへ — タイヤの摩耗を注意深く確認するだろう。",
+                "決断が下された。{driver}がピットイン — どのコンパウンドか。",
+            ],
+            "pit_exit": [
+                "{driver}が出てきた — このスティントに正しいタイヤか見てみよう。",
+                "クリーンなアウトラップが必要。{driver}は素早くタイヤを温めないと。",
+            ],
+            "fastest_lap": [
+                "{driver}がファステストラップを狙う — そして獲得。賢い。",
+                "{driver}が全3セクターで紫。タイヤが計画通りに機能している。",
+            ],
+            "accident_suspected": [
+                "{driver}が停止した。メカニカルか、まだ見ていないコンタクトか。",
+                "あの車は動いていない。セーフティカーが来るだろう。",
+            ],
+            "flag_green": [
+                "グリーンフラッグ。タイヤ温度がリスタートのペースを左右する。",
+                "レース再開。このフェーズでタイヤを最もうまく管理できるのは誰か。",
+            ],
+            "flag_yellow": [
+                "イエロー。速度を落とすのは賢い判断 — コース上のポジションは貴重だ。",
+                "コーション期間。チームはピットのタイミングを計算している。",
+            ],
+            "flag_red": [
+                "赤旗。エンジニアは今すぐ全データを分析するだろう。",
+                "中断 — これで全員のタイヤ戦略が変わる。",
+            ],
+            "flag_checkered": [
+                "チェッカーフラッグ。タイヤ戦略は予想通りに展開した。",
+                "終了。全ての事前計画がこの瞬間に集約された。",
+            ],
+        },
+    },
+    3: {
+        "en": {
+            "overtake": [
+                "Classic late-braking — you see that in karting first. {driver} earns that one.",
+                "Back in my day, that was just called good racecraft. {driver} to P{to_pos}.",
+                "He waited, he was patient, and he took it. Textbook pass by {driver}.",
+                "That's the art of wheel-to-wheel racing. {driver} through on the inside.",
+                "You cannot teach that instinct. {driver} into P{to_pos} — well done.",
+            ],
+            "lead_change": [
+                "The experienced head prevails — {new_driver} to the front.",
+                "I've seen this play out a hundred times. {new_driver} reads the situation perfectly.",
+                "{old_driver} left the door ajar. In my day, you never left the door ajar.",
+                "{new_driver} demonstrates what racecraft really means. P1 now.",
+                "Championship experience telling. {new_driver} leads — and deserves to.",
+            ],
+            "race_start": [
+                "The most critical moment — turn one, wheel to wheel, no room for error.",
+                "When those lights go out, everything you've practised is put to the test.",
+                "I've been there — your heart rate doubles in that moment. Now we race.",
+            ],
+            "battle": [
+                "This is old-school wheel-to-wheel racing. {chaser_driver} and {leader_driver} giving everything.",
+                "Back in my day, you had to earn every position. That's what we're seeing here.",
+                "{chaser_driver} is sizing {leader_driver} up, corner by corner. Experience versus nerve.",
+                "The racecraft on display here from both drivers — exceptional.",
+                "Neither driver willing to give an inch. This is what it's all about.",
+            ],
+            "pit_entry": [
+                "Coming into the pits — in my era, we changed tyres in twelve seconds.",
+                "{driver} box. The crew will want a clean one — no room for errors.",
+                "The pit call. Trust the engineers — they've done the sums.",
+            ],
+            "pit_exit": [
+                "{driver} back out — now the real work begins on that out-lap.",
+                "Fresh rubber. In my day, you felt the difference immediately. Go on, {driver}.",
+                "Clean release. Now {driver} needs to manage those cold tyres for a lap.",
+            ],
+            "fastest_lap": [
+                "Fastest lap — the confidence is there. {driver} feeling it today.",
+                "That lap time tells a story. {driver} committed all the way through.",
+                "In my era, fastest lap meant everything. {driver} has got it.",
+            ],
+            "accident_suspected": [
+                "I've been in that position — you hope it's nothing serious. {driver} stationary.",
+                "In my day, we just got out and walked back. But safety first, always.",
+                "Something's wrong. The marshals are there — please let {driver} be okay.",
+            ],
+            "laps_to_go": [
+                "This is where the racers are separated from the drivers. Close it out.",
+                "Final laps — everything you've got, hold nothing back.",
+                "In my experience, this is when mistakes happen. Stay focused, stay clean.",
+            ],
+            "flag_green": [
+                "Green flag — and back to the racing I love.",
+                "Restart. This is where experience counts. No mistakes in the first corner.",
+                "Green flag. Warm those tyres fast and don't give an inch.",
+            ],
+            "flag_yellow": [
+                "Yellow flag — respect it. I've seen careers end from ignoring yellows.",
+                "Caution. In my day, you lifted and hoped for the best.",
+                "Yellow sector. Keep it neat and wait for the green.",
+            ],
+            "flag_red": [
+                "Red flag. Take a breath, reset, and come back stronger.",
+                "Stoppage. Use the time wisely — the restart will be flat-out.",
+                "Red flag. In my era, we'd use this time to walk the circuit again.",
+            ],
+            "flag_checkered": [
+                "Chequered flag. That's what all the hard work is for.",
+                "It's over. Every lap of preparation led to this moment.",
+                "The flag. Doesn't matter how many times you see it — still gives you goosebumps.",
+            ],
+        },
+        "pt": {
+            "overtake": [
+                "Travagem clássica no limite — aprende-se no karting. {driver} merece-a.",
+                "No meu tempo, isso chamava-se simplesmente bom pilotagem. {driver} para P{to_pos}.",
+                "Esperou, foi paciente, e fez a ultrapassagem. Manual do {driver}.",
+                "Não se ensina esse instinto. {driver} para P{to_pos} — bem feito.",
+            ],
+            "lead_change": [
+                "A cabeça experiente prevalece — {new_driver} para a frente.",
+                "Já vi isto acontecer cem vezes. {new_driver} lê a situação na perfeição.",
+                "{old_driver} deixou a porta entreaberta. No meu tempo, nunca se deixava.",
+                "{new_driver} demonstra o que pilotagem de corrida realmente significa. P1 agora.",
+            ],
+            "race_start": [
+                "O momento mais crítico — curva um, roda a roda, sem margem para erros.",
+                "Quando essas luzes se apagam, tudo o que treinou é posto à prova.",
+            ],
+            "battle": [
+                "Isto é pilotagem roda a roda à moda antiga. {chaser_driver} e {leader_driver} dando tudo.",
+                "No meu tempo, havia que ganhar cada posição. É isso que vemos aqui.",
+                "{chaser_driver} está a avaliar {leader_driver} curva a curva. Experiência contra nervos.",
+            ],
+            "pit_entry": [
+                "A entrar nas boxes — na minha era, mudávamos pneus em doze segundos.",
+                "A paragem. Confiem nos engenheiros — fizeram as contas.",
+            ],
+            "pit_exit": [
+                "{driver} de volta — agora o trabalho real começa nessa volta de saída.",
+                "Borracha fresca. No meu tempo, sentia-se a diferença imediatamente.",
+            ],
+            "fastest_lap": [
+                "Volta mais rápida — a confiança está lá. {driver} inspirado hoje.",
+                "Esse tempo de volta conta uma história. {driver} comprometido do início ao fim.",
+            ],
+            "accident_suspected": [
+                "Já estive nessa posição — esperamos que não seja nada sério. {driver} parado.",
+                "No meu tempo, saíamos e voltávamos a pé. Mas primeiro a segurança.",
+            ],
+            "flag_green": [
+                "Bandeira verde — e de volta à corrida que adoro.",
+                "Restart. É aqui que a experiência conta. Sem erros na primeira curva.",
+            ],
+            "flag_yellow": [
+                "Bandeira amarela — respeite-a. Já vi carreiras acabar por ignorar amarelas.",
+                "Precaução. No meu tempo, aliviava-se o acelerador e torcia-se.",
+            ],
+            "flag_red": [
+                "Bandeira vermelha. Respira fundo, recomeça, e volta mais forte.",
+                "Paragem. Na minha era, usávamos o tempo para andar no circuito.",
+            ],
+            "flag_checkered": [
+                "Bandeira xadrez. É para isso que serve todo o trabalho árduo.",
+                "A bandeira. Não interessa quantas vezes a veja — dá sempre arrepios.",
+            ],
+        },
+        "es": {
+            "overtake": [
+                "Frenada clásica al límite — eso se aprende en el karting. {driver} se la gana.",
+                "En mis tiempos, eso se llamaba simplemente buen pilotaje. {driver} a P{to_pos}.",
+                "Esperó, fue paciente, y lo hizo. Manual de {driver}.",
+                "No se puede enseñar ese instinto. {driver} a P{to_pos} — bien hecho.",
+            ],
+            "lead_change": [
+                "La cabeza experimentada prevalece — {new_driver} al frente.",
+                "He visto esto pasar cien veces. {new_driver} lee la situación a la perfección.",
+                "{old_driver} dejó la puerta entreabierta. En mis tiempos, nunca se dejaba.",
+            ],
+            "race_start": [
+                "El momento más crítico — curva uno, rueda a rueda, sin margen para errores.",
+                "Cuando esas luces se apagan, todo lo que has entrenado se pone a prueba.",
+            ],
+            "battle": [
+                "Esto es pilotaje rueda a rueda a la antigua. {chaser_driver} y {leader_driver} dándolo todo.",
+                "En mis tiempos, había que ganarse cada posición. Es lo que estamos viendo.",
+            ],
+            "pit_entry": [
+                "Entrando en boxes — en mi época, cambiábamos neumáticos en doce segundos.",
+                "La parada. Confíen en los ingenieros — han hecho los cálculos.",
+            ],
+            "pit_exit": [
+                "{driver} de vuelta — ahora empieza el trabajo real en esa vuelta de salida.",
+                "Goma fresca. En mis tiempos, se notaba la diferencia de inmediato.",
+            ],
+            "fastest_lap": [
+                "Vuelta rápida — la confianza está ahí. {driver} inspirado hoy.",
+                "Ese tiempo de vuelta cuenta una historia. {driver} comprometido de principio a fin.",
+            ],
+            "accident_suspected": [
+                "He estado en esa posición — esperemos que no sea nada grave. {driver} parado.",
+                "En mis tiempos, salías y volvías andando. Pero primero la seguridad.",
+            ],
+            "flag_green": [
+                "Bandera verde — y de vuelta a la carrera que amo.",
+                "Relanzamiento. Aquí es donde cuenta la experiencia. Sin errores en la primera curva.",
+            ],
+            "flag_yellow": [
+                "Bandera amarilla — respétala. He visto carreras acabar por ignorar las amarillas.",
+                "Precaución. En mis tiempos, levantabas el pie y rezabas.",
+            ],
+            "flag_red": [
+                "Bandera roja. Respira hondo, reiníciate, y vuelve más fuerte.",
+                "Detención. En mi época, usábamos el tiempo para recorrer el circuito a pie.",
+            ],
+            "flag_checkered": [
+                "Bandera a cuadros. Para eso sirve todo el duro trabajo.",
+                "La bandera. No importa cuántas veces la veas — siempre te pone la piel de gallina.",
+            ],
+        },
+        "jp": {
+            "overtake": [
+                "古典的な遅いブレーキング — カートで最初に学ぶこと。{driver}が獲得した。",
+                "私の時代には、これを単純に良いレースクラフトと呼んでいた。{driver}がP{to_pos}へ。",
+                "待って、辛抱強く待って、決めた。{driver}の教科書通りのパス。",
+                "そのインスティンクトは教えられない。{driver}がP{to_pos}へ — よくやった。",
+            ],
+            "lead_change": [
+                "経験豊富な頭脳が勝る — {new_driver}が先頭へ。",
+                "これを百回見てきた。{new_driver}が状況を完璧に読んだ。",
+                "{old_driver}がドアを少し開けた。私の時代にはドアを開けなかった。",
+            ],
+            "race_start": [
+                "最も重要な瞬間 — ターン1、ホイール・トゥ・ホイール、エラーの余地なし。",
+                "ライトが消えた瞬間、練習してきた全てが試される。",
+            ],
+            "battle": [
+                "これが昔ながらのホイール・トゥ・ホイールレーシングだ。{chaser_driver}と{leader_driver}が全力で。",
+                "私の時代には、全てのポジションを稼がなければならなかった。今まさにそれが見えている。",
+            ],
+            "pit_entry": [
+                "ピットへ — 私の時代には12秒でタイヤを交換していた。",
+                "ピットコール。エンジニアを信頼しろ — 計算済みだ。",
+            ],
+            "pit_exit": [
+                "{driver}が戻ってきた — アウトラップで本当の仕事が始まる。",
+                "フレッシュタイヤ。私の時代にはすぐに違いを感じることができた。",
+            ],
+            "fastest_lap": [
+                "ファステストラップ — 自信がある。{driver}は今日絶好調だ。",
+                "そのラップタイムは物語を語っている。{driver}は徹底的にコミットした。",
+            ],
+            "accident_suspected": [
+                "あの状況にいたことがある — 大したことがないよう祈る。{driver}が停止している。",
+                "私の時代には、降りて歩いて戻った。でも常に安全第一。",
+            ],
+            "flag_green": [
+                "グリーンフラッグ — そして私が愛するレーシングに戻る。",
+                "リスタート。経験が物を言う場面だ。最初のコーナーでミスをするな。",
+            ],
+            "flag_yellow": [
+                "イエローフラッグ — 尊重しろ。イエローを無視してキャリアを終えた選手を見てきた。",
+                "コーション。私の時代には、アクセルを緩めて最善を祈った。",
+            ],
+            "flag_red": [
+                "赤旗。深呼吸して、リセットして、より強く戻れ。",
+                "中断。私の時代には、この時間を使ってサーキットを歩いた。",
+            ],
+            "flag_checkered": [
+                "チェッカーフラッグ。全ての努力はこのためだ。",
+                "フラッグ。何度見ても — やはり鳥肌が立つ。",
+            ],
+        },
+    },
+    4: {
+        "en": {
+            "overtake": [
+                "OH! {driver} FLIES THROUGH! P{to_pos}! ABSOLUTELY STUNNING!",
+                "UNBELIEVABLE! {driver} just pulled off the move of the RACE! P{to_pos}!",
+                "DID YOU SEE THAT?! {driver} — P{to_pos} — I cannot believe what I just witnessed!",
+                "OH MY WORD! That pass from {driver}! I AM LOSING MY MIND!",
+                "SENSATIONAL! {driver} goes for the gap and TAKES IT! P{to_pos}!",
+            ],
+            "lead_change": [
+                "WE HAVE A NEW LEADER AND I AM GOING ABSOLUTELY MENTAL! {new_driver}!",
+                "OH! OH! {new_driver} TO THE FRONT! {old_driver} WILL NOT BELIEVE IT!",
+                "THIS IS INCREDIBLE! {new_driver} LEADS! THE CROWD IS ON THEIR FEET!",
+                "I HAVE NEVER SEEN ANYTHING LIKE IT! {new_driver} IS P1! UNREAL!",
+                "CHAOS! DRAMA! {new_driver} TAKES THE LEAD AND THIS RACE IS ALIVE!",
+            ],
+            "race_start": [
+                "LIGHTS OUT AND AWAY WE GO! THIS IS WHAT WE LIVE FOR!",
+                "AND THEY'RE OFF! THE CROWD IS GOING ABSOLUTELY WILD!",
+                "HERE WE GO! THE MOST INCREDIBLE SPORT ON THE PLANET IS UNDERWAY!",
+                "FIVE LIGHTS — ALL OUT — AND IT IS ON! YESSS!",
+            ],
+            "battle": [
+                "THIS IS INSANE! {chaser_driver} IS ALL OVER {leader_driver}! EDGE OF MY SEAT!",
+                "I CANNOT WATCH! I CANNOT LOOK AWAY! {chaser_driver} AND {leader_driver}!",
+                "THE GAP IS NOTHING! NOTHING! THIS IS MOTORSPORT AT ITS ABSOLUTE FINEST!",
+                "OH WOW WOW WOW! {chaser_driver} IS RIGHT THERE! ONE MISTAKE AND IT'S OVER!",
+                "WHEEL TO WHEEL AND ABSOLUTELY ELECTRIC! {leader_driver} FIGHTING FOR HIS LIFE!",
+            ],
+            "pit_entry": [
+                "{driver} INTO THE PITS! EVERY TENTH COUNTS! LET'S SEE THE CREW GO!",
+                "PIT STOP! {driver} IN! THE CREW ARE READY! THIS IS DRAMATIC!",
+                "{driver} DIVES IN! THE STRATEGY PLAY IS ON! THIS COULD DECIDE EVERYTHING!",
+            ],
+            "pit_exit": [
+                "{driver} BLASTS BACK OUT! WHAT A STOP! WHAT A TEAM!",
+                "OUT OF THE PITS! {driver} REJOINS! I AM PUMPED!",
+                "FAST STOP! {driver} IS BACK! NOW GO, GO, GO!",
+            ],
+            "fastest_lap": [
+                "FASTEST LAP! {driver} IS ON FIRE! PURPLE! PURPLE! PURPLE!",
+                "OH THAT IS QUICK! {driver} SMASHES THE RECORD! UNBELIEVABLE COMMITMENT!",
+                "I HAVE NEVER SEEN A LAP LIKE THAT! {driver} IS SUPERNATURAL TODAY!",
+            ],
+            "accident_suspected": [
+                "OH NO! SOMETHING HAS GONE WRONG FOR {driver}! THIS IS SERIOUS!",
+                "THE CAR IS STOPPED! {driver} IS NOT MOVING! COME ON, BE OKAY!",
+                "OH MY! DISASTER FOR {driver}! PLEASE LET THEM BE ALRIGHT!",
+            ],
+            "laps_to_go": [
+                "WE ARE IN THE CLOSING STAGES AND I CANNOT BREATHE!",
+                "FINAL LAPS! MY HEART IS POUNDING! WHO WANTS IT MORE?!",
+                "HERE WE GO! THE ENDGAME! EVERYTHING IS ON THE LINE RIGHT NOW!",
+            ],
+            "flag_green": [
+                "GREEN FLAG! WE ARE BACK AND I AM HYPED OUT OF MY MIND!",
+                "RACING AGAIN! YES! LET'S GO! THE WHOLE PLACE IS ELECTRIC!",
+                "GREEN! GREEN! GREEN! FULL SPEED AND ABSOLUTELY NO MERCY!",
+            ],
+            "flag_yellow": [
+                "YELLOWS OUT! WATCH YOURSELVES OUT THERE! DRAMA ON TRACK!",
+                "CAUTION! SOMETHING'S HAPPENING! STAY TUNED, THIS COULD CHANGE EVERYTHING!",
+                "YELLOW FLAG! EVERYONE HOLD YOUR POSITIONS — FOR NOW!",
+            ],
+            "flag_red": [
+                "RED FLAG! STOPPAGE! I CANNOT BELIEVE WHAT IS HAPPENING!",
+                "IT'S ALL STOPPED! RED FLAG! THE DRAMA NEVER ENDS IN THIS RACE!",
+                "RED! RED! RED! EVERYTHING IS ON HOLD — AND THE TENSION IS UNREAL!",
+            ],
+            "flag_checkered": [
+                "CHEQUERED FLAG! THAT IS IT! ONE OF THE GREATEST RACES I HAVE EVER WITNESSED!",
+                "IT IS OVER AND I HAVE COMPLETELY LOST MY VOICE! WHAT A RACE! WHAT A RACE!",
+                "THE FLAG IS OUT! THIS HAS BEEN AN ABSOLUTELY SENSATIONAL EVENT! I LOVE THIS SPORT!",
+            ],
+        },
+        "pt": {
+            "overtake": [
+                "OH! {driver} VOLA! P{to_pos}! ABSOLUTAMENTE INACREDITÁVEL!",
+                "INCRÍVEL! {driver} acaba de fazer a ultrapassagem da CORRIDA! P{to_pos}!",
+                "VIRAM ISSO?! {driver} — P{to_pos} — NÃO ACREDITO!",
+                "MINHA NOSSA! Aquela ultrapassagem de {driver}! ESTOU A PERDER A CABEÇA!",
+            ],
+            "lead_change": [
+                "TEMOS UM NOVO LÍDER E ESTOU A FICAR LOUCO! {new_driver}!",
+                "OH! OH! {new_driver} PARA A FRENTE! {old_driver} NÃO VAI ACREDITAR!",
+                "ISTO É INCRÍVEL! {new_driver} LIDERA! A MULTIDÃO ESTÁ DE PÉ!",
+                "NUNCA VI NADA ASSIM! {new_driver} EM P1! IRREAL!",
+            ],
+            "race_start": [
+                "LUZES APAGADAS E LÁ VAMOS NÓS! É PARA ISTO QUE VIVEMOS!",
+                "E LÁ FORAM! A MULTIDÃO ESTÁ ABSOLUTAMENTE LOUCA!",
+                "AQUI VAMOS NÓS! O DESPORTO MAIS INCRÍVEL DO PLANETA ESTÁ EM CURSO!",
+            ],
+            "battle": [
+                "ISTO É LOUCURA! {chaser_driver} ESTÁ COLADO A {leader_driver}! À BEIRA DO ASSENTO!",
+                "NÃO CONSIGO VER! NÃO CONSIGO DESVIAR O OLHAR! {chaser_driver} E {leader_driver}!",
+                "A DIFERENÇA É NADA! NADA! ISTO É O MELHOR DO AUTOMOBILISMO!",
+            ],
+            "pit_entry": [
+                "{driver} PARA AS BOXES! CADA DÉCIMO CONTA! VEJAMOS A EQUIPA!",
+                "PARAGEM! {driver} DENTRO! A EQUIPA ESTÁ PRONTA! ISTO É DRAMÁTICO!",
+            ],
+            "pit_exit": [
+                "{driver} DISPARA DE VOLTA! QUE PARAGEM! QUE EQUIPA!",
+                "SAÍDA DAS BOXES! {driver} REGRESSA! ESTOU EUFÓRICO!",
+            ],
+            "fastest_lap": [
+                "VOLTA MAIS RÁPIDA! {driver} ESTÁ EM CHAMAS! ROXO! ROXO! ROXO!",
+                "QUE RAPIDEZ! {driver} DESTRÓI O RECORDE! COMPROMETIMENTO INACREDITÁVEL!",
+            ],
+            "accident_suspected": [
+                "OH NÃO! ALGO CORREU MAL PARA {driver}! ISTO É SÉRIO!",
+                "O CARRO ESTÁ PARADO! {driver} NÃO SE MEXE! ESPERO QUE ESTEJA BEM!",
+            ],
+            "flag_green": [
+                "BANDEIRA VERDE! ESTAMOS DE VOLTA E ESTOU HIPERACTIVO!",
+                "EM CORRIDA NOVAMENTE! SIM! VAMOS LÁ! O AMBIENTE ESTÁ ELECTRIZANTE!",
+            ],
+            "flag_yellow": [
+                "AMARELAS! ATENÇÃO LÁ FORA! DRAMA NA PISTA!",
+                "ATENÇÃO! ALGO ESTÁ A ACONTECER! PODE MUDAR TUDO!",
+            ],
+            "flag_red": [
+                "BANDEIRA VERMELHA! PARAGEM! NÃO ACREDITO NO QUE ESTÁ A ACONTECER!",
+                "TUDO PARADO! BANDEIRA VERMELHA! O DRAMA NUNCA ACABA!",
+            ],
+            "flag_checkered": [
+                "BANDEIRA XADREZ! É ISSO! UMA DAS MAIORES CORRIDAS QUE JÁ VI!",
+                "ACABOU E PERDI COMPLETAMENTE A VOZ! QUE CORRIDA! QUE CORRIDA!",
+            ],
+        },
+        "es": {
+            "overtake": [
+                "¡OH! ¡{driver} VUELA! ¡P{to_pos}! ¡ABSOLUTAMENTE INCREÍBLE!",
+                "¡INCREÍBLE! ¡{driver} acaba de hacer el adelantamiento de la CARRERA! ¡P{to_pos}!",
+                "¿HAN VISTO ESO? ¡{driver} — P{to_pos} — NO ME LO PUEDO CREER!",
+                "¡DIOS MÍO! ¡Ese adelantamiento de {driver}! ¡ESTOY PERDIENDO LA CABEZA!",
+            ],
+            "lead_change": [
+                "¡TENEMOS UN NUEVO LÍDER Y ME ESTOY VOLVIENDO LOCO! ¡{new_driver}!",
+                "¡OH! ¡OH! ¡{new_driver} AL FRENTE! ¡{old_driver} NO SE LO VA A CREER!",
+                "¡ESTO ES INCREÍBLE! ¡{new_driver} LIDERA! ¡EL PÚBLICO ESTÁ EN PIE!",
+            ],
+            "race_start": [
+                "¡LUCES APAGADAS Y ALLÁ VAMOS! ¡PARA ESTO VIVIMOS!",
+                "¡Y SALEN! ¡EL PÚBLICO ESTÁ ABSOLUTAMENTE ENLOQUECIDO!",
+                "¡AQUÍ VAMOS! ¡EL DEPORTE MÁS INCREÍBLE DEL PLANETA ESTÁ EN MARCHA!",
+            ],
+            "battle": [
+                "¡ESTO ES UNA LOCURA! ¡{chaser_driver} ESTÁ ENCIMA DE {leader_driver}! ¡AL BORDE DEL ASIENTO!",
+                "¡NO PUEDO MIRAR! ¡NO PUEDO APARTAR LA VISTA! ¡{chaser_driver} Y {leader_driver}!",
+                "¡LA DIFERENCIA ES NADA! ¡NADA! ¡ESTO ES EL MEJOR AUTOMOVILISMO!",
+            ],
+            "pit_entry": [
+                "¡{driver} A BOXES! ¡CADA DÉCIMA CUENTA! ¡VEAMOS AL EQUIPO!",
+                "¡PARADA! ¡{driver} DENTRO! ¡EL EQUIPO ESTÁ LISTO! ¡ESTO ES DRAMÁTICO!",
+            ],
+            "pit_exit": [
+                "¡{driver} SALE DISPARADO! ¡QUÉ PARADA! ¡QUÉ EQUIPO!",
+                "¡SALIDA DE BOXES! ¡{driver} REGRESA! ¡ESTOY EUFÓRICO!",
+            ],
+            "fastest_lap": [
+                "¡VUELTA RÁPIDA! ¡{driver} ESTÁ EN LLAMAS! ¡MORADO! ¡MORADO! ¡MORADO!",
+                "¡QUÉ RÁPIDO! ¡{driver} DESTRUYE EL RÉCORD! ¡COMPROMISO INCREÍBLE!",
+            ],
+            "accident_suspected": [
+                "¡OH NO! ¡ALGO HA IDO MAL PARA {driver}! ¡ESTO ES SERIO!",
+                "¡EL COCHE ESTÁ PARADO! ¡{driver} NO SE MUEVE! ¡ESPERO QUE ESTÉ BIEN!",
+            ],
+            "flag_green": [
+                "¡BANDERA VERDE! ¡ESTAMOS DE VUELTA Y ESTOY HISTÉRICO!",
+                "¡CORRIENDO DE NUEVO! ¡SÍ! ¡VAMOS! ¡EL AMBIENTE ESTÁ ELECTRIZANTE!",
+            ],
+            "flag_yellow": [
+                "¡AMARILLAS! ¡CUIDADO AHÍ FUERA! ¡DRAMA EN PISTA!",
+                "¡ATENCIÓN! ¡ALGO ESTÁ PASANDO! ¡PODRÍA CAMBIARLO TODO!",
+            ],
+            "flag_red": [
+                "¡BANDERA ROJA! ¡DETENCIÓN! ¡NO ME PUEDO CREER LO QUE ESTÁ PASANDO!",
+                "¡TODO PARADO! ¡BANDERA ROJA! ¡EL DRAMA NUNCA TERMINA!",
+            ],
+            "flag_checkered": [
+                "¡BANDERA A CUADROS! ¡ES TODO! ¡UNA DE LAS MEJORES CARRERAS QUE HE VISTO JAMÁS!",
+                "¡HA TERMINADO Y HE PERDIDO LA VOZ COMPLETAMENTE! ¡QUÉ CARRERA! ¡QUÉ CARRERA!",
+            ],
+        },
+        "jp": {
+            "overtake": [
+                "OH！{driver}が飛んだ！P{to_pos}！絶対に信じられない！",
+                "信じられない！{driver}がレース最高のオーバーテイク！P{to_pos}！",
+                "見た？！{driver} — P{to_pos} — 目を疑う！",
+                "なんてこった！{driver}のあのパス！気が狂いそうだ！",
+            ],
+            "lead_change": [
+                "新しいリーダーで私は完全に頭が狂いそう！{new_driver}！",
+                "OH！OH！{new_driver}がトップへ！{old_driver}は信じられないだろう！",
+                "信じられない！{new_driver}がリード！観客が立ち上がっている！",
+                "こんなもの見たことない！{new_driver}がP1！非現実的！",
+            ],
+            "race_start": [
+                "ライトアウト、さあ行くぞ！これのために生きている！",
+                "スタートだ！観客が完全に狂っている！",
+                "さあここだ！地球上で最も信じられないスポーツが始まった！",
+            ],
+            "battle": [
+                "これは狂っている！{chaser_driver}が{leader_driver}に張り付いている！シートの端に座っている！",
+                "見られない！目が離せない！{chaser_driver}と{leader_driver}！",
+                "差はゼロ！ゼロ！これがモータースポーツの最高峰だ！",
+            ],
+            "pit_entry": [
+                "{driver}がピットへ！10分の1秒が全て！クルーを見ろ！",
+                "ピットストップ！{driver}イン！クルーの準備完了！劇的だ！",
+            ],
+            "pit_exit": [
+                "{driver}が飛び出した！なんというストップ！なんというチーム！",
+                "ピットアウト！{driver}が復帰！テンション最高！",
+            ],
+            "fastest_lap": [
+                "ファステストラップ！{driver}が燃えている！パープル！パープル！パープル！",
+                "なんという速さ！{driver}がレコードを叩き壊した！信じられないコミットメント！",
+            ],
+            "accident_suspected": [
+                "OH NO！{driver}に何か問題が！これは深刻だ！",
+                "車が停止！{driver}が動いていない！大丈夫でいてくれ！",
+            ],
+            "flag_green": [
+                "グリーンフラッグ！戻ってきた、テンション最高！",
+                "レース再開！YES！行くぞ！全体が電気を帯びている！",
+            ],
+            "flag_yellow": [
+                "イエロー！そこに注意！トラック上でドラマ！",
+                "コーション！何かが起きている！全てが変わるかもしれない！",
+            ],
+            "flag_red": [
+                "赤旗！停止！何が起きているか信じられない！",
+                "全て停止！赤旗！このレースのドラマは終わらない！",
+            ],
+            "flag_checkered": [
+                "チェッカーフラッグ！終わった！私が見た中で最高のレースの一つ！",
+                "終わった、声が完全に枯れた！なんというレース！なんというレース！",
+            ],
+        },
+    },
+}
+
+
 def _event_key(event: dict) -> str:
     """Map an event dict to a template key."""
     t = (event.get("type") or "").lower()
@@ -1831,16 +2798,41 @@ class TemplateCommentator:
             f"{tname}には多くの歴史があります。",
         )
 
-    def generate(self, event: dict, language: str = "en", session_type: str = "race") -> str:
+    def generate(
+        self,
+        event: dict,
+        language: str = "en",
+        session_type: str = "race",
+        speaker: int = 0,
+    ) -> str:
         """Return a single broadcast-style line for the given event.
 
         `session_type` is a free-form string (e.g. "Race", "Qualify 2",
         "Practice"). It's normalized internally to one of practice /
         qualifying / race.
+
+        When `speaker` is non-zero the method first checks
+        SPEAKER_TEMPLATES for persona-specific lines before falling back
+        to the generic TEMPLATES pool.
         """
         if not event:
             return ""
         key = _event_key(event)
+
+        # --- persona-specific pool (speaker 1-4) ---
+        if speaker:
+            lang = (language or "en").lower()
+            sp_pool = SPEAKER_TEMPLATES.get(speaker, {}).get(lang, {}).get(key)
+            if sp_pool:
+                sp_tag = f"sp{speaker}:{lang}:{key}"
+                tmpl = self._pick(sp_tag, sp_pool)
+                if tmpl:
+                    try:
+                        return tmpl.format_map(_SafeDict(event))
+                    except Exception:
+                        return tmpl
+
+        # --- generic pool fallback ---
         s_key = _session_key(session_type)
         tag = f"{language}:{s_key}:{key}"
         template = self._pick(tag, self._pool(language, session_type, key))

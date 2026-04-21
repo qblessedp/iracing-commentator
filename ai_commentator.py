@@ -234,7 +234,7 @@ class AICommentator:
         # Template provider: skip LLM, pick from curated phrase pools
         if self.provider == "template" and self._template is not None:
             try:
-                text = self._template.generate(selected[0], language, session_type)
+                text = self._template.generate(selected[0], language, session_type, speaker)
             except Exception as e:
                 self.last_error = f"{type(e).__name__}: {e}"
                 return {"speaker": 0, "text": ""}
