@@ -59,6 +59,7 @@ DEFAULT_CONFIG = {
     "voice_id_4": "",
     "language": "en",
     "volume": 100,
+    "window_geometry": "640x780",
 }
 
 

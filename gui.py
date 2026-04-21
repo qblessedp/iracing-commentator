@@ -47,7 +47,6 @@ class CommentatorGUI(tk.Tk):
     def __init__(self, on_start=None, on_stop=None, on_volume_change=None, on_language_change=None):
         super().__init__()
         self.title(f"iRacing Commentator v{APP_VERSION}")
-        self.geometry("640x780")
         self.minsize(600, 700)
         self.configure(bg=BG)
 
@@ -58,8 +57,19 @@ class CommentatorGUI(tk.Tk):
         self.running = False
         self.config_data = load_config()
 
+        # Restore saved window geometry (size + optional position).
+        saved_geo = self.config_data.get("window_geometry", "640x780")
+        try:
+            self.geometry(saved_geo)
+        except Exception:
+            self.geometry("640x780")
+
         self._apply_theme()
         self._build_ui()
+
+        # Persist geometry whenever the user resizes or moves the window.
+        self._geo_save_job: str | None = None
+        self.bind("<Configure>", self._on_window_configure)
 
     # ------------------------------------------------------------------ theme
     def _apply_theme(self) -> None:
@@ -406,7 +416,28 @@ class CommentatorGUI(tk.Tk):
             "language": self._lang_display_to_code.get(self.lang_display_var.get(), "en"),
             "volume": int(self.volume_var.get()),
             "tts_provider": clean(self.tts_provider_var.get()) or "elevenlabs",
+            "window_geometry": self.winfo_geometry(),
         }
+
+    def _on_window_configure(self, event: tk.Event) -> None:
+        """Debounced save of window geometry on resize/move."""
+        if event.widget is not self:
+            return
+        if self._geo_save_job:
+            try:
+                self.after_cancel(self._geo_save_job)
+            except Exception:
+                pass
+        self._geo_save_job = self.after(500, self._persist_geometry)
+
+    def _persist_geometry(self) -> None:
+        self._geo_save_job = None
+        try:
+            geo = self.winfo_geometry()
+            self.config_data["window_geometry"] = geo
+            save_config(self.config_data)
+        except Exception:
+            pass
 
     def _on_language_change(self, _event=None) -> None:
         lang_code = self._lang_display_to_code.get(self.lang_display_var.get(), "en")
@@ -565,18 +596,42 @@ class CommentatorGUI(tk.Tk):
             tts = None
             btn_enabled = False
             try:
-                if provider == "edge":
+                if provider == "sapi":
+                    # Run pyttsx3 directly and synchronously in this thread.
+                    # Avoids the queue/_run daemon complexity that caused
+                    # silent failures on some Windows COM setups.
+                    import pyttsx3
+                    engine = pyttsx3.init()
+                    voice_hint = (v.get(slot) or "").strip()
+                    for vobj in (engine.getProperty("voices") or []):
+                        if voice_hint.lower() in (vobj.name or "").lower():
+                            engine.setProperty("voice", vobj.id)
+                            break
+                    rates = {1: 195, 2: 175, 3: 165, 4: 210}
+                    engine.setProperty("rate", rates.get(slot, 180))
+                    engine.setProperty("volume", volume)
+                    engine.say(text)
+                    # Re-enable button before blocking on runAndWait.
+                    if btn:
+                        self.after(0, lambda: btn.configure(state="normal"))
+                    btn_enabled = True
+                    engine.runAndWait()
+                    try:
+                        engine.stop()
+                    except Exception:
+                        pass
+                elif provider == "edge":
                     tts = TTSEdge(
                         voice_id_1=v[1], voice_id_2=v[2],
                         voice_id_3=v[3], voice_id_4=v[4],
                         volume=volume,
                     )
-                elif provider == "sapi":
-                    tts = TTSSapi(
-                        voice_id_1=v[1], voice_id_2=v[2],
-                        voice_id_3=v[3], voice_id_4=v[4],
-                        volume=volume,
-                    )
+                    tts.start()
+                    tts.speak(text, slot)
+                    if btn:
+                        self.after(0, lambda: btn.configure(state="normal"))
+                    btn_enabled = True
+                    _time.sleep(8)
                 else:
                     tts = TTSElevenLabs(
                         api_key=api_key,
@@ -584,16 +639,12 @@ class CommentatorGUI(tk.Tk):
                         voice_id_3=v[3], voice_id_4=v[4],
                         volume=volume,
                     )
-                tts.start()
-                tts.speak(text, slot)
-                # Re-enable button immediately — speech runs in tts._run thread.
-                if btn:
-                    self.after(0, lambda: btn.configure(state="normal"))
-                btn_enabled = True
-                # Keep this thread (and the tts object) alive so the _run
-                # daemon thread can finish speaking. SAPI/pyttsx3 requires
-                # the owning object to remain reachable during runAndWait().
-                _time.sleep(8)
+                    tts.start()
+                    tts.speak(text, slot)
+                    if btn:
+                        self.after(0, lambda: btn.configure(state="normal"))
+                    btn_enabled = True
+                    _time.sleep(8)
             except Exception as e:
                 self.after(0, lambda err=e: self.log_line(f"Preview error: {err}", tag="error"))
             finally:
