@@ -561,7 +561,9 @@ class CommentatorGUI(tk.Tk):
         self.log_line(f"▶ Previewing Speaker {slot}...", tag="info")
 
         def worker() -> None:
+            import time as _time
             tts = None
+            btn_enabled = False
             try:
                 if provider == "edge":
                     tts = TTSEdge(
@@ -584,20 +586,24 @@ class CommentatorGUI(tk.Tk):
                     )
                 tts.start()
                 tts.speak(text, slot)
+                # Re-enable button immediately — speech runs in tts._run thread.
+                if btn:
+                    self.after(0, lambda: btn.configure(state="normal"))
+                btn_enabled = True
+                # Keep this thread (and the tts object) alive so the _run
+                # daemon thread can finish speaking. SAPI/pyttsx3 requires
+                # the owning object to remain reachable during runAndWait().
+                _time.sleep(8)
             except Exception as e:
                 self.after(0, lambda err=e: self.log_line(f"Preview error: {err}", tag="error"))
             finally:
-                if btn:
-                    self.after(0, lambda: btn.configure(state="normal"))
                 if tts:
-                    def _teardown(t=tts):
-                        import time as _time
-                        _time.sleep(6)
-                        try:
-                            t.stop()
-                        except Exception:
-                            pass
-                    threading.Thread(target=_teardown, daemon=True).start()
+                    try:
+                        tts.stop()
+                    except Exception:
+                        pass
+                if btn and not btn_enabled:
+                    self.after(0, lambda: btn.configure(state="normal"))
 
         threading.Thread(target=worker, daemon=True).start()
 
