@@ -11,7 +11,10 @@ from tkinter import ttk
 from tkinter.scrolledtext import ScrolledText
 
 from ai_commentator import AICommentator
-from config import load_config, save_config, PROVIDERS, TTS_PROVIDERS, LANGUAGE_LABELS
+from config import (
+    load_config, save_config, PROVIDERS, TTS_PROVIDERS, LANGUAGE_LABELS,
+    EDGE_NEURAL_VOICES, SAPI_DEFAULT_VOICES, EDGE_DEFAULT_VOICES, ELEVENLABS_DEFAULT_VOICES,
+)
 from tts_elevenlabs import TTSElevenLabs
 from tts_edge import TTSEdge
 from tts_sapi import TTSSapi
@@ -244,6 +247,7 @@ class CommentatorGUI(tk.Tk):
         self.tts_status_indicator.grid(row=1, column=3, sticky="w", pady=4)
 
         self.preview_btns: dict[int, ttk.Button] = {}
+        self.pick_btns: dict[int, ttk.Button] = {}
 
         ttk.Label(frame2, text="Speaker 1 — Play-by-play").grid(row=2, column=0, sticky="w", pady=4)
         self.voice1_var = tk.StringVar(value=self.config_data["voice_id_1"])
@@ -251,8 +255,11 @@ class CommentatorGUI(tk.Tk):
             row=2, column=1, sticky="w", padx=10, pady=4
         )
         _pb1 = ttk.Button(frame2, text="▶", width=3, command=lambda: self._preview_voice(1))
-        _pb1.grid(row=2, column=2, sticky="w", padx=(0, 4), pady=4)
+        _pb1.grid(row=2, column=2, sticky="w", padx=(0, 2), pady=4)
         self.preview_btns[1] = _pb1
+        _pk1 = ttk.Button(frame2, text="🎙", width=3, command=lambda: self._voice_picker_dialog(1))
+        _pk1.grid(row=2, column=3, sticky="w", padx=(0, 4), pady=4)
+        self.pick_btns[1] = _pk1
 
         ttk.Label(frame2, text="Speaker 2 — Color Analyst").grid(row=3, column=0, sticky="w", pady=4)
         self.voice2_var = tk.StringVar(value=self.config_data["voice_id_2"])
@@ -260,8 +267,11 @@ class CommentatorGUI(tk.Tk):
             row=3, column=1, sticky="w", padx=10, pady=4
         )
         _pb2 = ttk.Button(frame2, text="▶", width=3, command=lambda: self._preview_voice(2))
-        _pb2.grid(row=3, column=2, sticky="w", padx=(0, 4), pady=4)
+        _pb2.grid(row=3, column=2, sticky="w", padx=(0, 2), pady=4)
         self.preview_btns[2] = _pb2
+        _pk2 = ttk.Button(frame2, text="🎙", width=3, command=lambda: self._voice_picker_dialog(2))
+        _pk2.grid(row=3, column=3, sticky="w", padx=(0, 4), pady=4)
+        self.pick_btns[2] = _pk2
 
         ttk.Label(frame2, text="Speaker 3 — Veteran Ex-Driver").grid(row=4, column=0, sticky="w", pady=4)
         self.voice3_var = tk.StringVar(value=self.config_data.get("voice_id_3", ""))
@@ -269,8 +279,11 @@ class CommentatorGUI(tk.Tk):
             row=4, column=1, sticky="w", padx=10, pady=4
         )
         _pb3 = ttk.Button(frame2, text="▶", width=3, command=lambda: self._preview_voice(3))
-        _pb3.grid(row=4, column=2, sticky="w", padx=(0, 4), pady=4)
+        _pb3.grid(row=4, column=2, sticky="w", padx=(0, 2), pady=4)
         self.preview_btns[3] = _pb3
+        _pk3 = ttk.Button(frame2, text="🎙", width=3, command=lambda: self._voice_picker_dialog(3))
+        _pk3.grid(row=4, column=3, sticky="w", padx=(0, 4), pady=4)
+        self.pick_btns[3] = _pk3
 
         ttk.Label(frame2, text="Speaker 4 — Hype Commentator").grid(row=5, column=0, sticky="w", pady=4)
         self.voice4_var = tk.StringVar(value=self.config_data.get("voice_id_4", ""))
@@ -278,8 +291,11 @@ class CommentatorGUI(tk.Tk):
             row=5, column=1, sticky="w", padx=10, pady=4
         )
         _pb4 = ttk.Button(frame2, text="▶", width=3, command=lambda: self._preview_voice(4))
-        _pb4.grid(row=5, column=2, sticky="w", padx=(0, 4), pady=4)
+        _pb4.grid(row=5, column=2, sticky="w", padx=(0, 2), pady=4)
         self.preview_btns[4] = _pb4
+        _pk4 = ttk.Button(frame2, text="🎙", width=3, command=lambda: self._voice_picker_dialog(4))
+        _pk4.grid(row=5, column=3, sticky="w", padx=(0, 4), pady=4)
+        self.pick_btns[4] = _pk4
         self._apply_tts_provider_state()
         self._apply_text_provider_state()
 
@@ -448,15 +464,157 @@ class CommentatorGUI(tk.Tk):
                 pass
 
     def _on_tts_provider_change(self, _event=None) -> None:
+        """Auto-fill voice IDs with sensible defaults when the TTS provider changes.
+
+        Detects format mismatch (e.g. an ElevenLabs ID left in the field when
+        switching to SAPI) and replaces the value with the correct default for
+        the new provider, so users don't have to clear the fields manually."""
+        new_provider = (self.tts_provider_var.get() or "elevenlabs").lower().strip()
+        voice_vars = {
+            1: self.voice1_var,
+            2: self.voice2_var,
+            3: self.voice3_var,
+            4: self.voice4_var,
+        }
+        for slot, var in voice_vars.items():
+            current = (var.get() or "").strip()
+            if new_provider == "elevenlabs":
+                # ElevenLabs IDs are ~20-char alphanumeric with no dashes/spaces.
+                # If the current value looks like an Edge or SAPI name, replace it.
+                if not current or "-" in current or " " in current:
+                    var.set(ELEVENLABS_DEFAULT_VOICES.get(slot, ""))
+            elif new_provider == "edge":
+                # Edge voices are locale-tagged: en-GB-RyanNeural style.
+                if not current or "-" not in current:
+                    var.set(EDGE_DEFAULT_VOICES.get(slot, ""))
+            elif new_provider == "sapi":
+                # SAPI hints are short first-name strings: "David", "Zira".
+                if not current or "-" in current or len(current) > 30:
+                    var.set(SAPI_DEFAULT_VOICES.get(slot, ""))
         self._apply_tts_provider_state()
 
     def _apply_tts_provider_state(self) -> None:
-        """Grey out the ElevenLabs API key entry for key-less backends."""
+        """Grey out the ElevenLabs API key entry for key-less backends.
+        Enable the 🎙 pick buttons only for providers with an enumerable voice list."""
         provider = (self.tts_provider_var.get() or "").lower().strip()
         if provider in ("edge", "sapi"):
             self.el_key_entry.configure(state="disabled")
         else:
             self.el_key_entry.configure(state="normal")
+        # Voice picker only makes sense for SAPI (list from OS) and Edge (curated list).
+        pick_state = "normal" if provider in ("edge", "sapi") else "disabled"
+        for btn in self.pick_btns.values():
+            btn.configure(state=pick_state)
+
+    def _voice_picker_dialog(self, slot: int) -> None:
+        """Open a modal voice-picker for the given speaker slot.
+
+        SAPI: shows all installed voices (standard + OneCore) from
+              TTSSapi.list_all_voices() with a live filter box.
+        Edge: shows the curated EDGE_NEURAL_VOICES list with a live filter box.
+        Double-clicking or pressing Select writes the chosen name into the
+        corresponding voice_id entry field."""
+        provider = (self.tts_provider_var.get() or "elevenlabs").lower().strip()
+        if provider == "sapi":
+            voices = TTSSapi.list_all_voices()
+            title = f"Speaker {slot} — Windows SAPI Voice"
+        elif provider == "edge":
+            voices = list(EDGE_NEURAL_VOICES)
+            title = f"Speaker {slot} — Edge Neural Voice"
+        else:
+            return  # ElevenLabs: no enumerable list
+
+        if not voices:
+            self.log_line("No voices found for this provider.", tag="warn")
+            return
+
+        voice_var = {
+            1: self.voice1_var, 2: self.voice2_var,
+            3: self.voice3_var, 4: self.voice4_var,
+        }.get(slot)
+        if voice_var is None:
+            return
+
+        dlg = tk.Toplevel(self)
+        dlg.title(title)
+        dlg.configure(bg=BG)
+        dlg.resizable(False, False)
+        dlg.grab_set()  # modal — blocks interaction with main window
+
+        # Filter box
+        search_frame = ttk.Frame(dlg)
+        search_frame.pack(fill="x", padx=12, pady=(12, 4))
+        ttk.Label(search_frame, text="Filter:").pack(side="left")
+        search_var = tk.StringVar()
+        search_entry = ttk.Entry(
+            search_frame, textvariable=search_var, width=32, font=FONT_UI
+        )
+        search_entry.pack(side="left", padx=(6, 0), fill="x", expand=True)
+
+        # Scrollable Listbox
+        list_frame = ttk.Frame(dlg)
+        list_frame.pack(fill="both", expand=True, padx=12, pady=4)
+        scrollbar = ttk.Scrollbar(list_frame, orient="vertical")
+        listbox = tk.Listbox(
+            list_frame,
+            bg=FIELD,
+            fg=TEXT,
+            selectbackground=ACCENT,
+            selectforeground=BG,
+            font=FONT_UI,
+            activestyle="none",
+            height=16,
+            width=42,
+            yscrollcommand=scrollbar.set,
+            relief="flat",
+            borderwidth=0,
+        )
+        scrollbar.config(command=listbox.yview)
+        listbox.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+
+        def _populate(filter_text: str = "") -> None:
+            listbox.delete(0, "end")
+            fl = filter_text.lower()
+            for v in voices:
+                if fl in v.lower():
+                    listbox.insert("end", v)
+            # Pre-select the currently configured voice
+            current = voice_var.get().strip().lower()
+            for i in range(listbox.size()):
+                item = listbox.get(i).lower()
+                if current and (item == current or current in item):
+                    listbox.selection_set(i)
+                    listbox.see(i)
+                    break
+
+        _populate()
+        search_var.trace_add("write", lambda *_: _populate(search_var.get()))
+
+        def _select() -> None:
+            sel = listbox.curselection()
+            if not sel:
+                return
+            voice_var.set(listbox.get(sel[0]))
+            dlg.destroy()
+
+        listbox.bind("<Double-Button-1>", lambda _e: _select())
+        dlg.bind("<Return>", lambda _e: _select())
+
+        # Action buttons
+        btn_frame = ttk.Frame(dlg)
+        btn_frame.pack(fill="x", padx=12, pady=(4, 12))
+        ttk.Button(
+            btn_frame, text="Select", style="Accent.TButton", command=_select
+        ).pack(side="left", padx=(0, 6))
+        ttk.Button(btn_frame, text="Cancel", command=dlg.destroy).pack(side="left")
+
+        # Centre dialog over the main window
+        dlg.update_idletasks()
+        pw = self.winfo_x() + (self.winfo_width() - dlg.winfo_width()) // 2
+        ph = self.winfo_y() + (self.winfo_height() - dlg.winfo_height()) // 2
+        dlg.geometry(f"+{pw}+{ph}")
+        search_entry.focus_set()
 
     def _on_text_provider_change(self, _event=None) -> None:
         self._apply_text_provider_state()

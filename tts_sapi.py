@@ -207,3 +207,53 @@ class TTSSapi:
             return names
         except Exception:
             return []
+
+    @staticmethod
+    def list_all_voices() -> list[str]:
+        """Return friendly names of ALL available voices: standard SAPI + Windows
+        OneCore / neural voices (best-effort). OneCore voices live in the registry
+        at HKLM\\SOFTWARE\\Microsoft\\Speech_OneCore\\Voices\\Tokens and are NOT
+        surfaced by pyttsx3/SAPI5 — we read them directly via winreg."""
+        names: list[str] = []
+
+        # Standard SAPI voices via pyttsx3
+        try:
+            import pyttsx3
+            engine = pyttsx3.init()
+            for v in (engine.getProperty("voices") or []):
+                name = v.name or ""
+                if name and name not in names:
+                    names.append(name)
+            try:
+                engine.stop()
+            except Exception:
+                pass
+        except Exception:
+            pass
+
+        # Windows OneCore / neural voices from registry
+        try:
+            import winreg
+            key_path = r"SOFTWARE\Microsoft\Speech_OneCore\Voices\Tokens"
+            with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, key_path) as root:
+                i = 0
+                while True:
+                    try:
+                        sub_name = winreg.EnumKey(root, i)
+                        try:
+                            with winreg.OpenKey(root, sub_name) as sub:
+                                try:
+                                    display, _ = winreg.QueryValueEx(sub, "")
+                                except OSError:
+                                    display = sub_name
+                        except OSError:
+                            display = sub_name
+                        if display and display not in names:
+                            names.append(display)
+                        i += 1
+                    except OSError:
+                        break
+        except Exception:
+            pass
+
+        return names

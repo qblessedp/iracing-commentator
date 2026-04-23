@@ -71,6 +71,30 @@ def _default_voice_for(slot: int, tts_provider: str) -> str:
         return SAPI_DEFAULT_VOICES.get(slot, "")
     return ELEVENLABS_DEFAULT_VOICES.get(slot, "")
 
+# Curated list of Edge TTS neural voices. EN / PT-PT / ES / JP all included.
+EDGE_NEURAL_VOICES: list[str] = [
+    # English — British
+    "en-GB-RyanNeural", "en-GB-ThomasNeural", "en-GB-OliverNeural",
+    "en-GB-SoniaNeural", "en-GB-LibbyNeural", "en-GB-MaisieNeural",
+    # English — American
+    "en-US-GuyNeural", "en-US-ChristopherNeural", "en-US-EricNeural",
+    "en-US-DavisNeural", "en-US-TonyNeural", "en-US-JasonNeural",
+    "en-US-AriaNeural", "en-US-JennyNeural", "en-US-MonicaNeural",
+    "en-US-SaraNeural", "en-US-NancyNeural",
+    # English — AU / IE / NZ / CA
+    "en-AU-WilliamNeural", "en-AU-NatashaNeural",
+    "en-IE-ConnorNeural", "en-IE-EmilyNeural",
+    "en-NZ-MitchellNeural", "en-CA-LiamNeural",
+    # Portuguese — Portugal (PT-PT, not PT-BR)
+    "pt-PT-DuarteNeural", "pt-PT-RaquelNeural", "pt-PT-FernandaNeural",
+    # Spanish — Castilian
+    "es-ES-AlvaroNeural", "es-ES-ElviraNeural", "es-ES-AbrilNeural",
+    "es-ES-ArnauNeural", "es-ES-DarioNeural", "es-ES-IreneNeural",
+    # Japanese
+    "ja-JP-KeitaNeural", "ja-JP-NanamiNeural",
+    "ja-JP-DaichiNeural", "ja-JP-ShioriNeural",
+]
+
 PROVIDERS = ["template", "openai", "anthropic", "gemini", "ollama"]
 TTS_PROVIDERS = ["elevenlabs", "edge", "sapi"]
 LANGUAGES = {"en": "English", "pt": "Portugues", "es": "Espanol", "jp": "Japanese"}
