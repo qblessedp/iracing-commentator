@@ -50,7 +50,7 @@ class CommentatorGUI(tk.Tk):
     def __init__(self, on_start=None, on_stop=None, on_volume_change=None, on_language_change=None):
         super().__init__()
         self.title(f"iRacing Commentator v{APP_VERSION}")
-        self.minsize(600, 700)
+        self.minsize(700, 720)
         self.configure(bg=BG)
 
         self.on_start = on_start
@@ -449,7 +449,15 @@ class CommentatorGUI(tk.Tk):
     def _persist_geometry(self) -> None:
         self._geo_save_job = None
         try:
-            geo = self.winfo_geometry()
+            w = self.winfo_width()
+            h = self.winfo_height()
+            x = self.winfo_x()
+            y = self.winfo_y()
+            # Skip degenerate values emitted during startup before the window
+            # has been fully laid out (winfo returns 1x1 until first map).
+            if w < 100 or h < 100:
+                return
+            geo = f"{w}x{h}+{x}+{y}"
             self.config_data["window_geometry"] = geo
             save_config(self.config_data)
         except Exception:
@@ -463,12 +471,25 @@ class CommentatorGUI(tk.Tk):
             except Exception:
                 pass
 
+    # --- Voice ID format helpers -------------------------------------------
+
+    @staticmethod
+    def _voice_is_elevenlabs(v: str) -> bool:
+        """ElevenLabs IDs are ≥15 purely alphanumeric chars — no dashes or spaces."""
+        return len(v) >= 15 and v.isalnum()
+
+    @staticmethod
+    def _voice_is_edge(v: str) -> bool:
+        """Edge neural voices follow the locale-Neural pattern, e.g. en-GB-RyanNeural."""
+        return "Neural" in v and "-" in v
+
     def _on_tts_provider_change(self, _event=None) -> None:
         """Auto-fill voice IDs with sensible defaults when the TTS provider changes.
 
-        Detects format mismatch (e.g. an ElevenLabs ID left in the field when
-        switching to SAPI) and replaces the value with the correct default for
-        the new provider, so users don't have to clear the fields manually."""
+        Each voice field is inspected individually: if its current value is in the
+        wrong format for the new provider (e.g. an ElevenLabs hash still sitting in
+        the field after switching to SAPI), it is replaced with the correct default.
+        Custom values already in the right format are kept as-is."""
         new_provider = (self.tts_provider_var.get() or "elevenlabs").lower().strip()
         voice_vars = {
             1: self.voice1_var,
@@ -478,18 +499,21 @@ class CommentatorGUI(tk.Tk):
         }
         for slot, var in voice_vars.items():
             current = (var.get() or "").strip()
+            is_el   = self._voice_is_elevenlabs(current)
+            is_edge = self._voice_is_edge(current)
+            # is_sapi: non-empty and doesn't look like the other two formats
+            is_sapi = bool(current) and not is_el and not is_edge
+
             if new_provider == "elevenlabs":
-                # ElevenLabs IDs are ~20-char alphanumeric with no dashes/spaces.
-                # If the current value looks like an Edge or SAPI name, replace it.
-                if not current or "-" in current or " " in current:
+                if not current or is_edge or is_sapi:
                     var.set(ELEVENLABS_DEFAULT_VOICES.get(slot, ""))
             elif new_provider == "edge":
-                # Edge voices are locale-tagged: en-GB-RyanNeural style.
-                if not current or "-" not in current:
+                if not current or is_el or is_sapi:
                     var.set(EDGE_DEFAULT_VOICES.get(slot, ""))
             elif new_provider == "sapi":
-                # SAPI hints are short first-name strings: "David", "Zira".
-                if not current or "-" in current or len(current) > 30:
+                # The old bug: ElevenLabs hashes are alphanumeric with no dash,
+                # so the previous len>30 check never fired. is_el catches them.
+                if not current or is_el or is_edge:
                     var.set(SAPI_DEFAULT_VOICES.get(slot, ""))
         self._apply_tts_provider_state()
 
